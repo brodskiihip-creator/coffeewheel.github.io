@@ -1,0 +1,4273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Колесо вкусов — дегустация кофе</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f6f1ea; --card:#fffdfa; --line:#e6dcd0;
+    --text:#2b2320; --muted:#8b7a6d;
+    --accent:#8a5a3b; --accent-hover:#7a4d31; --soft:#f4ece3;
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--text);font-size:16px;line-height:1.5;
+    min-height:100vh;
+  }
+    .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+
+  header{margin-bottom:18px;text-align:center}
+  header h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+  header p{color:var(--muted);font-size:14.5px;margin-top:4px}
+
+  .steps{display:flex;gap:8px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+  .step-dot{
+    display:flex;align-items:center;gap:8px;padding:7px 14px;
+    border-radius:999px;font-size:13px;font-weight:600;
+    background:var(--card);border:1px solid var(--line);color:var(--muted);
+    cursor:pointer;transition:.15s;
+  }
+  .step-dot.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .step-dot.done{background:var(--soft);border-color:#d6c4b0;color:var(--accent)}
+  .step-num{
+    width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.08);
+    display:flex;align-items:center;justify-content:center;font-size:12px;
+  }
+  .step-dot.active .step-num{background:rgba(255,255,255,.25)}
+
+/* ====================== ТИТУЛЬНЫЙ ЭКРАН ====================== */
+.title-screen{
+  display:none;
+}
+.title-screen.active{
+  display:block;
+  animation:fadeIn .3s;
+}
+.title-hero{
+  text-align:center;
+  padding:40px 20px 28px;
+}
+.title-hero h1{
+  font-size:32px;
+  font-weight:650;
+  letter-spacing:-.02em;
+  margin-bottom:8px;
+}
+.title-hero p{
+  color:var(--muted);
+  font-size:15px;
+}
+.title-menu{
+  display:grid;
+  gap:14px;
+  max-width:560px;
+  margin:0 auto;
+}
+.title-btn{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:22px 24px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  font-family:inherit;
+  font-size:17px;
+  font-weight:600;
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+  transition:transform .15s, box-shadow .2s, border-color .2s, background .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.title-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(138,90,59,.10);
+  border-color:#d6c4b0;
+  background:#fff;
+}
+.title-btn:active{
+  transform:translateY(0);
+}
+.title-btn .tb-ico{
+  flex:0 0 48px;
+  height:48px;
+  border-radius:12px;
+  background:var(--soft);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+}
+.title-btn .tb-txt{
+  flex:1;
+}
+.title-btn .tb-sub{
+  display:block;
+  font-size:13px;
+  font-weight:400;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+/* Кнопка «на главную» в шапке разделов */
+.back-home{
+  background:none;
+  border:none;
+  color:var(--accent);
+  font-family:inherit;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  padding:8px 12px;
+  border-radius:9px;
+  transition:background .15s;
+}
+.back-home:hover{
+  background:var(--soft);
+}
+.section-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+.section-header h2{
+  font-size:20px;
+  font-weight:650;
+  margin:0;
+}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:18px;margin-bottom:14px;
+  }
+  .card h2{
+    font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);font-weight:700;margin-bottom:12px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+  }
+
+  /* ====================== КОЛЕСО ====================== */
+.wheel-container{
+  position:relative;
+  width:100%;max-width:900px;aspect-ratio:1/1;
+  margin:0 auto 10px;
+}
+  .wheel-svg{width:100%;height:100%;display:block;overflow:visible}
+
+  .wheel-svg .sector{
+    cursor:pointer;
+    transition:
+      transform .45s cubic-bezier(.22,.9,.32,1.05),
+      opacity .35s ease,
+      filter .25s ease,
+      stroke-width .25s ease;
+    stroke:#fffdfa;
+    stroke-width:0.8;
+    transform-origin: 300px 300px;
+  }
+  .wheel-svg .sector.shrinking{
+    transform: scale(.82);
+    opacity:.5;
+  }
+  .wheel-svg .sector.growing{
+    transform: scale(1.08);
+  }
+  .wheel-svg .sector:hover{ filter:brightness(1.10); }
+  .wheel-svg .sector.selected{
+    stroke:#2b2320;
+    stroke-width:2;
+    filter:brightness(1.08);
+  }
+  .wheel-svg .sector.dim{ opacity:.35; }
+  .wheel-svg .sector.fresh{
+    animation: sectorPop .45s cubic-bezier(.22,.9,.32,1.05);
+  }
+  @keyframes sectorPop{
+    0%   { opacity:0; transform:scale(.85); }
+    100% { opacity:1; transform:scale(1); }
+  }
+
+  .wheel-svg text{
+    pointer-events:none;
+    font-family:inherit;
+    fill:#fff;
+    font-weight:600;
+    text-anchor:middle;
+    dominant-baseline:middle;
+  }
+  .wheel-svg text.on-light{ fill:#2b2320; }
+  .wheel-svg text.dim{ opacity:.35; }
+
+  /* ====================== ТЕГИ ====================== */
+  .tags{display:flex;flex-wrap:wrap;gap:7px;min-height:36px}
+  .tag{
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--soft);border:1px solid #e5d9cc;border-radius:999px;
+    padding:6px 7px 6px 12px;font-size:13.5px;font-weight:500;
+  }
+  .tag .dot{width:8px;height:8px;border-radius:50%}
+  .tag-x{
+    width:22px;height:22px;border-radius:50%;border:none;
+    background:#e2d4c5;color:#5c4a3d;font-size:15px;line-height:1;
+    cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;justify-content:center;transition:.15s;
+  }
+  .tag-x:hover{background:#c19a7c;color:#fff}
+  .empty{color:#a2938a;font-size:13.5px}
+
+  /* ====================== ШКАЛЫ ====================== */
+  .scale-row{margin-bottom:16px}
+  .scale-row:last-child{margin-bottom:0}
+  .scale-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:6px;font-size:14px;
+  }
+  .scale-val{
+    font-weight:700;color:var(--accent);font-size:15px;
+    background:var(--soft);padding:2px 10px;border-radius:999px;
+    min-width:38px;text-align:center;
+  }
+  input[type=range]{
+    width:100%;height:26px;-webkit-appearance:none;appearance:none;
+    background:transparent;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:6px;border-radius:3px;background:#e6dcd0;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+    background:#fff;border:2px solid var(--accent);margin-top:-8px;
+    box-shadow:0 1px 4px rgba(0,0,0,.15);
+  }
+  input[type=range]::-moz-range-track{
+    height:6px;border-radius:3px;background:#e6dcd0;
+  }
+  input[type=range]::-moz-range-progress{
+    height:6px;border-radius:3px;background:var(--accent);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:20px;height:20px;border-radius:50%;background:#fff;
+    border:2px solid var(--accent);
+  }
+
+  /* ====================== КНОПКИ ====================== */
+  .btn{
+    font-family:inherit;font-size:14.5px;font-weight:600;
+    padding:12px 18px;min-height:48px;border-radius:12px;
+    border:1px solid #dccdbd;background:#fff;color:var(--text);
+    cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;
+  }
+  .btn:hover{background:var(--soft)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-hover)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--accent)}
+  .btn.ghost:hover{background:var(--soft)}
+  .btn.small{padding:7px 13px;min-height:36px;font-size:13px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .row .btn{flex:1 1 auto;min-width:140px}
+
+  textarea{
+    width:100%;min-height:170px;resize:vertical;
+    font-family:inherit;font-size:15px;line-height:1.6;
+    padding:13px;border-radius:12px;border:1px solid var(--line);
+    background:#fdfbf8;color:var(--text);
+  }
+  textarea:focus{outline:2px solid #dcc3a6;outline-offset:1px}
+  input[type=text]{
+    flex:1 1 170px;min-height:48px;padding:12px 14px;
+    border-radius:12px;border:1px solid var(--line);
+    background:#fdfbf8;font-family:inherit;font-size:14.5px;color:var(--text);
+  }
+  input[type=text]:focus{outline:2px solid #dcc3a6;outline-offset:1px}
+
+  .hist{
+    border:1px solid #ece2d7;border-radius:13px;
+    padding:14px;margin-bottom:10px;background:var(--card);
+  }
+  /* Двухколоночная раскладка внутри записи истории */
+  .hist-layout{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+  }
+  .hist-main{
+    flex:1 1 auto;
+    min-width:0;   /* чтобы длинный текст не растягивал flex */
+  }
+  .hist-wheel{
+    flex:0 0 160px;
+    width:160px;
+    height:160px;
+  }
+  .hist-wheel svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  /* На узких экранах — колесо под текстом */
+  @media (max-width:520px){
+    .hist-layout{ flex-direction:column; }
+    .hist-wheel{ flex:0 0 auto; width:100%; max-width:220px; height:auto; aspect-ratio:1/1; margin:0 auto; }
+  }
+  .hist:last-child{margin-bottom:0}
+  .hist-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:4px}
+.hist-name{font-weight:650;font-size:15px}
+.hist-source{
+  display:inline-block;
+  margin-left:8px;
+  padding:2px 8px;
+  font-size:11px;
+  font-weight:600;
+  color:var(--accent);
+  background:var(--soft);
+  border-radius:6px;
+  vertical-align:middle;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+  .hist-date{font-size:12.5px;color:#a2938a}
+  .hist-desc{font-size:14px;line-height:1.6;margin:6px 0;color:#3a302b}
+  .hist-meta{font-size:12.5px;color:var(--muted);margin:6px 0}
+  /* ====================== ЛОТЫ В ИСТОРИИ ====================== */
+  .hist-lots{
+    margin:8px 0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .hist-lot{
+    padding:10px 12px;
+    background:var(--soft);
+    border-radius:10px;
+    border:1px solid #e5d9cc;
+  }
+  .hist-lot-title{
+    font-weight:700;
+    font-size:14px;
+    color:var(--text);
+    margin-bottom:6px;
+  }
+  .hist-lot-scales{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px 12px;
+    font-size:12.5px;
+    color:var(--text);
+    margin-bottom:4px;
+  }
+  .hist-lot-scales span{
+    background:#fff;
+    padding:1px 8px;
+    border-radius:999px;
+    border:1px solid #e5d9cc;
+  }
+  .hist-lot-checks{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.5;
+    margin-top:4px;
+  }
+  /* =========================================================================
+     ДЕСКРИПТИВНАЯ ФОРМА — оформление по образцу из PDF
+     ========================================================================= */
+  .desc-form{
+    background:#fff;
+    border:0;
+    border-radius:0;
+    padding:0;
+    overflow:hidden;
+  }
+  /* ====================== ВКЛАДКИ ЛОТОВ ====================== */
+  .lot-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .lot-tab{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 14px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#fff;
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text);
+    cursor:pointer;
+    transition:.15s;
+  }
+  .lot-tab:hover{
+    background:var(--soft);
+    border-color:#d6c4b0;
+  }
+  .lot-tab.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .lot-tab .lot-tab-num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    background:rgba(0,0,0,.08);
+    font-size:11px;
+  }
+  .lot-tab.active .lot-tab-num{
+    background:rgba(255,255,255,.25);
+  }
+  .lot-tab .lot-tab-code{
+    font-weight:400;
+    font-size:12px;
+    opacity:.9;
+    max-width:140px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .lot-tab.active .lot-tab-code{
+    opacity:1;
+  }
+  .desc-sheet{
+    border:1px solid #cfd3d6;
+    background:#fff;
+  }
+
+  .desc-sample-row{
+    display:grid;
+    grid-template-columns:1fr 230px;
+    min-height:30px;
+    border-bottom:1px solid #cfd3d6;
+  }
+  .desc-sample-main,
+  .desc-roast{
+    display:grid;
+    grid-template-columns:100px 1fr;
+    align-items:center;
+    min-width:0;
+  }
+  .desc-label-dark{
+    height:100%;
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+    background:#12283b;
+    color:#fff;
+    font-size:12px;
+    font-weight:750;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+  }
+  .desc-sample-main input{
+    width:100%;
+    height:28px;
+    border:0;
+    padding:3px 10px;
+    background:#fff;
+    font:600 13px inherit;
+    color:var(--text);
+  }
+  .desc-sample-main input:focus{
+    outline:2px solid #c7d0d7;
+    outline-offset:-2px;
+  }
+  .desc-sample-main input.invalid{
+    outline:2px solid #c84a3a;
+    outline-offset:-2px;
+    background:#fff4f2;
+  }
+  .desc-roast{
+    border-left:1px solid #cfd3d6;
+  }
+  .desc-roast-bar{
+    height:10px;
+    margin:0 6px;
+    border:1px solid #9ea3a7;
+    border-radius:2px;
+    background:linear-gradient(to right,#f3f3f3 0%,#c9c9c9 38%,#777 70%,#2f3438 100%);
+  }
+
+  .desc-table-row{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 230px;
+    min-height:105px;
+    border-bottom:1px solid #cfd3d6;
+  }
+  .desc-table-row.compact{
+    min-height:78px;
+  }
+  .desc-table-row:last-child{
+    border-bottom:0;
+  }
+
+  .desc-main-cell{
+    min-width:0;
+    width:100%;
+    padding:8px 10px 7px;
+    border-right:1px solid #cfd3d6;
+  }
+  .desc-notes-cell{
+    min-width:0;
+    padding:8px 10px;
+    background:#fff;
+  }
+  .desc-notes-title{
+    font-size:10px;
+    font-weight:700;
+    color:#12283b;
+    margin-bottom:5px;
+  }
+  .desc-notes{
+    width:100%;
+    min-height:70px;
+    height:calc(100% - 18px);
+    resize:vertical;
+    border:0;
+    padding:0;
+    background:#fff;
+    color:var(--text);
+    font:12px/1.35 inherit;
+  }
+  .desc-notes:focus{
+    outline:0;
+  }
+
+  .desc-sense-title{
+    display:flex;
+    align-items:baseline;
+    gap:4px;
+    color:#12283b;
+    font-size:18px;
+    line-height:1;
+    font-weight:750;
+    margin-bottom:1px;
+  }
+  .desc-sense-title small{
+    font-size:8px;
+    font-weight:500;
+    color:#333;
+  }
+  .desc-intensity{
+    font-size:10px;
+    line-height:1;
+    font-weight:700;
+    color:#12283b;
+    margin-bottom:3px;
+  }
+
+  .desc-scale{
+    position:relative;
+    margin:0 0 7px 0;
+    max-width:100%;
+  }
+  .desc-scale-top{
+    display:flex;
+    justify-content:space-between;
+    font-size:7px;
+    line-height:1;
+    font-weight:700;
+    color:#222;
+    margin-bottom:2px;
+    text-transform:uppercase;
+  }
+  .desc-range{
+    width:100%;
+    height:11px;
+    margin:0;
+    padding:0;
+    appearance:none;
+    -webkit-appearance:none;
+    background:transparent;
+    cursor:pointer;
+  }
+  .desc-range::-webkit-slider-runnable-track{
+    height:8px;
+    border:1px solid #b8b8b8;
+    border-radius:1px;
+    background:linear-gradient(to right,#f4f4f4 0%,#d0d0d0 35%,#999 65%,#303438 100%);
+  }
+  .desc-range::-webkit-slider-thumb{
+    appearance:none;
+    -webkit-appearance:none;
+    width:10px;
+    height:10px;
+    margin-top:-2px;
+    border:1px solid #333;
+    border-radius:50%;
+    background:#fff;
+  }
+  .desc-range::-moz-range-track{
+    height:8px;
+    border:1px solid #b8b8b8;
+    border-radius:1px;
+    background:linear-gradient(to right,#f4f4f4 0%,#d0d0d0 35%,#999 65%,#303438 100%);
+  }
+  .desc-range::-moz-range-thumb{
+    width:10px;
+    height:10px;
+    border:1px solid #333;
+    border-radius:50%;
+    background:#fff;
+  }
+  .desc-scale-numbers{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+    font-size:7px;
+    color:#222;
+    line-height:1;
+    margin-top:1px;
+  }
+  .desc-scale-numbers > span:not(.desc-value-live){
+    flex:0 0 auto;
+  }
+  .desc-value-live{
+    flex:0 0 auto;
+    padding:1px 6px;
+    font-size:9px;
+    font-weight:750;
+    color:#fff;
+    background:#12283b;
+    border-radius:999px;
+    min-width:20px;
+    text-align:center;
+  }
+
+  /* Пузырёк со значением, следующий за ползунком */
+  .desc-range-bubble{
+    position:absolute;
+    top:-16px;
+    transform:translateX(-50%) translateY(4px);
+    padding:1px 6px;
+    font-size:9px;
+    font-weight:750;
+    color:#fff;
+    background:#12283b;
+    border-radius:999px;
+    min-width:22px;
+    text-align:center;
+    pointer-events:none;
+    transition:left .05s linear, opacity .2s ease, transform .2s ease;
+    white-space:nowrap;
+    opacity:0;
+    visibility:hidden;
+  }
+  .desc-range-bubble.show{
+    opacity:1;
+    visibility:visible;
+    transform:translateX(-50%) translateY(0);
+  }
+  .desc-range-bubble::after{
+    content:'';
+    position:absolute;
+    left:50%;
+    bottom:-4px;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+    border-top:4px solid #12283b;
+  }
+  .desc-value{
+    display:none;
+  }
+
+  .desc-cata{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:2px 22px;
+    margin-top:2px;
+  }
+  .cata-col{
+    display:flex;
+    flex-wrap:wrap;
+    align-content:flex-start;
+    gap:2px 10px;
+    min-width:0;
+  }
+  .cata-group{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:2px 7px;
+    width:100%;
+    line-height:1.05;
+  }
+  .cata-group-single{
+    width:auto;
+  }
+  .cata-main,
+  .cata-sub{
+    display:inline-flex;
+    align-items:center;
+    gap:3px;
+    cursor:pointer;
+    white-space:nowrap;
+    color:#111;
+  }
+  .cata-main{
+    font-size:8.5px;
+    font-weight:750;
+  }
+  .cata-sub{
+    font-size:8px;
+    font-weight:400;
+    /* Скрыты, пока родитель не выбран */
+    display:none;
+  }
+  .cata-group.open .cata-sub{
+    display:inline-flex;
+  }
+  .cata-main input,
+  .cata-sub input{
+    width:10px;
+    height:10px;
+    margin:0;
+    accent-color:#6d6f72;
+  }
+
+  .desc-after-layout{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+    align-items:end;
+    margin-top:2px;
+  }
+  .desc-base{
+    display:flex;
+    flex-wrap:wrap;
+    gap:3px 6px;
+    min-height:16px;
+    align-items:center;
+  }
+  .desc-base-empty{
+    font-size:9px;
+    color:#8b7a6d;
+    font-style:italic;
+  }
+  .desc-base-chip{
+    display:inline-flex;
+    align-items:center;
+    padding:1px 7px;
+    font-size:9px;
+    font-weight:600;
+    background:var(--soft);
+    border:1px solid #e5d9cc;
+    border-radius:999px;
+    color:var(--text);
+  }
+  .desc-base-title{
+    font-size:8px;
+    font-weight:750;
+    color:#111;
+    margin-bottom:3px;
+  }
+  .desc-base{
+    display:flex;
+    flex-wrap:wrap;
+    gap:3px 10px;
+  }
+  .desc-base .desc-check{
+    font-size:8px;
+  }
+  .desc-check{
+    display:inline-flex;
+    align-items:center;
+    gap:3px;
+    color:#111;
+    cursor:pointer;
+  }
+  .desc-check input{
+    width:10px;
+    height:10px;
+    margin:0;
+    accent-color:#6d6f72;
+  }
+
+  .desc-tactile{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px 22px;
+    margin-top:3px;
+  }
+  .desc-tactile .desc-check{
+    font-size:8px;
+  }
+
+  /* ====================== МОДАЛКА: БАЗОВЫЕ ВКУСЫ ====================== */
+  .base-tastes-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 16px;
+    margin:14px 0 4px;
+  }
+  .base-taste-item{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fdfbf8;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:500;
+    color:var(--text);
+    transition:background .15s, border-color .15s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .base-taste-item:hover{
+    background:var(--soft);
+    border-color:#d6c4b0;
+  }
+  .base-taste-item input{
+    width:16px;
+    height:16px;
+    margin:0;
+    accent-color:var(--accent);
+    cursor:pointer;
+  }
+  .base-taste-item:has(input:checked){
+    background:var(--soft);
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+  @media (max-width:520px){
+    .base-tastes-grid{
+      grid-template-columns:1fr;
+    }
+  }
+  .desc-save{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:12px;
+  }
+
+  @media (max-width:760px){
+    .desc-sample-row,
+    .desc-table-row{
+      grid-template-columns:1fr;
+    }
+    .desc-roast{
+      border-left:0;
+      border-top:1px solid #cfd3d6;
+      min-height:30px;
+    }
+    .desc-main-cell{
+      border-right:0;
+      border-bottom:1px solid #cfd3d6;
+    }
+    .desc-notes-cell{
+      min-height:90px;
+    }
+  }
+
+  @media (max-width:520px){
+    .desc-cata{
+      grid-template-columns:1fr;
+      gap:3px;
+    }
+    .desc-scale{
+      margin-left:0;
+      max-width:none;
+    }
+    .desc-after-layout{
+      grid-template-columns:1fr;
+    }
+    .desc-table-row{
+      min-height:auto;
+    }
+  }
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:#2b2320;color:#fff;padding:12px 22px;border-radius:999px;
+    font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99;
+    max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  /* ====================== МОДАЛЬНОЕ ОКНО ====================== */
+  .modal-backdrop{
+    position:fixed; inset:0;
+    background:rgba(43,35,32,.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:200;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .modal-backdrop.show{
+    display:flex;
+    opacity:1;
+  }
+  .modal-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:24px;
+    width:100%;
+    max-width:480px;
+    max-height:90vh;
+    overflow-y:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,.20);
+    transform:translateY(8px);
+    transition:transform .25s ease;
+  }
+  .modal-backdrop.show .modal-card{
+    transform:translateY(0);
+  }
+  .modal-card h3{
+    font-size:19px;
+    font-weight:650;
+    margin-bottom:6px;
+  }
+  .modal-card p.sub{
+    color:var(--muted);
+    font-size:13.5px;
+    margin-bottom:18px;
+  }
+  .modal-field{
+    margin-bottom:14px;
+  }
+  .modal-field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .modal-field input{
+    width:100%;
+    min-height:46px;
+    padding:10px 14px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:#fdfbf8;
+    font-family:inherit;
+    font-size:14.5px;
+    color:var(--text);
+  }
+  .modal-field input:focus{
+    outline:2px solid #dcc3a6;
+    outline-offset:1px;
+  }
+  .modal-field input.invalid{
+    border-color:#c84a3a;
+    background:#fff4f2;
+  }
+  .modal-error{
+    display:none;
+    color:#c84a3a;
+    font-size:13px;
+    margin-top:-6px;
+    margin-bottom:12px;
+  }
+  .modal-error.show{ display:block; }
+  .modal-actions{
+    display:flex;
+    gap:8px;
+    margin-top:20px;
+  }
+  .modal-actions .btn{ flex:1 1 auto; }
+  /* ====================== МОДАЛЬНОЕ ОКНО: ВЫБОР ЧИСЛА ЛОТОВ ====================== */
+  .lots-grid{
+    display:grid;
+    grid-template-columns:repeat(6, 1fr);
+    gap:6px;
+    margin:12px 0 4px;
+  }
+  .lot-num{
+    aspect-ratio:1/1;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#fdfbf8;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    color:var(--text);
+    cursor:pointer;
+    transition:.15s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .lot-num:hover{
+    background:var(--soft);
+    border-color:#d6c4b0;
+  }
+  .lot-num.selected{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  @media (max-width:520px){
+    .lots-grid{ grid-template-columns:repeat(5, 1fr); }
+  }
+ 
+ /* ====================== МОДАЛЬНОЕ ОКНО: БОЛЬШОЕ КОЛЕСО ====================== */
+  .modal-backdrop.wide .modal-card{
+    max-width:760px;
+  }
+  .modal-backdrop.wide .modal-card h3{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .modal-wheel-wrap{
+    width:100%;
+    max-width:640px;
+    aspect-ratio:1/1;
+    margin:0 auto;
+  }
+  .modal-wheel-wrap svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .modal-wheel-meta{
+    text-align:center;
+    color:var(--muted);
+    font-size:13.5px;
+    margin-bottom:14px;
+  }
+  .modal-wheel-meta strong{
+    color:var(--text);
+    font-weight:600;
+  }
+  /* ====================== ПРОСМОТР ЛОТОВ В МОДАЛЬНОМ ОКНЕ ====================== */
+  #historyDescriptiveBody{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .modal-lot{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    background:#fff;
+  }
+  .modal-lot-title{
+    font-size:16px;
+    font-weight:700;
+    color:var(--text);
+    margin-bottom:8px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  .modal-lot-scales{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:6px 16px;
+    font-size:13.5px;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .modal-lot-scales .row-item{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:4px 0;
+    border-bottom:1px dashed #efe5d9;
+  }
+  .modal-lot-scales .row-item strong{
+    font-weight:600;
+    color:var(--muted);
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .modal-lot-scales .row-item span{
+    font-weight:700;
+    color:var(--accent);
+  }
+  .modal-lot-checks{
+    margin-top:6px;
+    font-size:13px;
+    color:var(--text);
+    line-height:1.5;
+  }
+  .modal-lot-checks strong{
+    color:var(--muted);
+    font-weight:600;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    margin-right:6px;
+  }
+  .modal-lot-checks .tag{
+    display:inline-flex;
+    align-items:center;
+    background:var(--soft);
+    border:1px solid #e5d9cc;
+    border-radius:999px;
+    padding:3px 10px;
+    font-size:12px;
+    margin:2px 4px 2px 0;
+  }
+  .modal-lot-notes{
+    margin-top:8px;
+    padding:8px 10px;
+    background:var(--soft);
+    border-radius:8px;
+    font-size:13px;
+    color:var(--text);
+    line-height:1.5;
+    white-space:pre-wrap;
+  }
+  .modal-lot-notes strong{
+    display:block;
+    color:var(--muted);
+    font-weight:600;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    margin-bottom:4px;
+  }
+  @media (max-width:520px){
+    .modal-lot-scales{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width:520px){
+    .wheel-svg text{ font-size:8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ====================== ТИТУЛЬНЫЙ ЭКРАН ====================== -->
+  <section class="title-screen active" id="titleScreen">
+    <div class="title-hero">
+      <h1>Дегустация кофе</h1>
+      <p>Профессиональный дневник вкусов и характеристик</p>
+    </div>
+
+    <div class="title-menu">
+      <button class="title-btn" data-open="wheel">
+        <span class="tb-ico">◉</span>
+        <span class="tb-txt">
+          Колесо вкусов
+          <span class="tb-sub">Выбор дескрипторов из колеса SCA</span>
+        </span>
+      </button>
+
+      <button class="title-btn" data-open="descriptive">
+        <span class="tb-ico">✎</span>
+        <span class="tb-txt">
+          Описательная форма
+          <span class="tb-sub">Кислотность, сладость, тело, послевкусие</span>
+        </span>
+      </button>
+
+      <button class="title-btn" data-open="affective">
+        <span class="tb-ico">♥</span>
+        <span class="tb-txt">
+          Аффективная форма
+          <span class="tb-sub">Личные впечатления и заметки</span>
+        </span>
+      </button>
+
+      <button class="title-btn" data-open="history">
+        <span class="tb-ico">☰</span>
+        <span class="tb-txt">
+          История дегустаций
+          <span class="tb-sub">Сохранённые записи</span>
+        </span>
+      </button>
+    </div>
+  </section>
+
+   <!-- ====================== РАЗДЕЛ: КОЛЕСО ВКУСОВ ====================== -->
+  <section class="title-screen" id="screenWheel">
+    <div class="section-header">
+      <button class="back-home" data-back>← На главную</button>
+      <h2>Колесо вкусов</h2>
+    </div>
+
+    <section class="card">
+      <h2>Выбрано <span id="selCount" style="color:var(--accent)">0</span></h2>
+      <div class="tags" id="tags"></div>
+    </section>
+
+    <div class="card">
+      <h2><span id="wheelHint">Нажмите категорию</span></h2>
+      <div class="wheel-container" id="wheelContainer">
+        <svg class="wheel-svg" id="wheelSvg" viewBox="0 0 600 600"></svg>
+      </div>
+    </div>
+    <!-- Кнопки на экране Колеса -->
+    <div class="row" style="margin-top:16px">
+      <button class="btn" id="btnSaveWheel">Сохранить результат</button>
+      <button class="btn primary" id="btnEndTasting">Конец дегустации →</button>
+    </div>
+  </section>
+
+  <!-- ====================== РАЗДЕЛ: ОПИСАТЕЛЬНАЯ (ДЕСКРИПТИВНАЯ) ФОРМА ====================== -->
+  <section class="title-screen" id="screenDescriptive">
+    <div class="section-header" style="margin-bottom:8px">
+      <button class="back-home" data-back>← На главную</button>
+    </div>
+    <!-- Вкладки лотов -->
+    <div class="lot-tabs" id="lotTabs"></div>
+
+    <div class="desc-form">
+      <div class="desc-sheet">
+        <div class="desc-sample-row">
+          <div class="desc-sample-main">
+            <div class="desc-label-dark">Образец</div>
+            <input type="text" id="descSample" placeholder="" autocomplete="off">
+          </div>
+          <div class="desc-roast">
+            <div class="desc-label-dark">Обжарка</div>
+            <div class="desc-roast-bar"></div>
+          </div>
+        </div>
+
+        <div class="desc-table-row">
+          <div class="desc-main-cell">
+            <div class="desc-sense-title">Запах <small>молотый кофе</small></div>
+            <div class="desc-intensity">Интенсивность</div>
+            <div class="desc-scale">
+              <div class="desc-scale-top"><span>низкая</span><span>средняя</span><span>высокая</span></div>
+              <input class="desc-range" id="scaleSmellDesc" type="range" min="0" max="15" value="0">
+              <div class="desc-range-bubble" id="bubbleSmellDesc">0</div>
+              <div class="desc-scale-numbers">
+                <span>0</span><span>5</span><span>10</span><span>15</span>
+               </div>
+            </div>
+
+            <div class="desc-sense-title">Аромат <small>заваренный кофе</small></div>
+            <div class="desc-intensity">Интенсивность</div>
+            <div class="desc-scale">
+              <div class="desc-scale-top"><span>низкая</span><span>средняя</span><span>высокая</span></div>
+              <input class="desc-range" id="scaleAromaDesc" type="range" min="0" max="15" value="0">
+                <div class="desc-range-bubble" id="bubbleAromaDesc">0</div>    
+                <div class="desc-scale-numbers">
+                <span>0</span><span>5</span><span>10</span><span>15</span>
+              </div>
+            </div>
+
+            <div class="desc-cata">
+              <div class="cata-col">
+                <div class="cata-group cata-group-single">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Цветочный"> Цветочный</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Фруктовый"> Фруктовый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Ягодный"> Ягодный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Сухофрукты"> Сухофрукты</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Цитрусовые"> Цитрусовые</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Кислый/Ферментированный"> Кислый/Ферментированный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Кислый"> Кислый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Ферментированный"> Ферментированный</label>
+                </div>
+                <div class="cata-group cata-group-single">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Зелёный/Растительный"> Зелёный/Растительный</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Другие"> Другие</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Химический"> Химический</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Землистый/Затхлый"> Землистый/Затхлый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Древесный"> Древесный</label>
+                </div>
+              </div>
+              <div class="cata-col">
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Жареный"> Жареный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Злаки"> Злаки</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Жжёный"> Жжёный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Табак"> Табак</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Ореховый/Какао"> Ореховый/Какао</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Ореховый"> Ореховый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Какао"> Какао</label>
+                </div>
+                <div class="cata-group cata-group-single">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Пряный"> Пряный</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="aroma" value="Сладкий"> Сладкий</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Ваниль/Ванилин"> Ваниль/Ванилин</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="aroma" value="Коричневый Сахар"> Коричневый Сахар</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="desc-notes-cell">
+            <div class="desc-notes-title">Заметки</div>
+            <textarea class="desc-notes" id="notesAroma" placeholder=""></textarea>
+          </div>
+        </div>
+
+        <div class="desc-table-row">
+          <div class="desc-main-cell">
+            <div class="desc-sense-title">Букет</div>
+            <div class="desc-intensity">Интенсивность</div>
+            <div class="desc-scale">
+              <div class="desc-scale-top"><span>низкая</span><span>средняя</span><span>высокая</span></div>
+              <input class="desc-range" id="scaleBouquetDesc" type="range" min="0" max="15" value="0">
+              <div class="desc-range-bubble" id="bubbleBouquetDesc">0</div>
+                <div class="desc-scale-numbers">
+                <span>0</span><span>5</span><span>10</span><span>15</span>
+              </div>
+            </div>
+
+            <div class="desc-sense-title">Послевкусие</div>
+            <div class="desc-intensity">Интенсивность</div>
+            <div class="desc-scale">
+              <div class="desc-scale-top"><span>низкая</span><span>средняя</span><span>высокая</span></div>
+              <input class="desc-range" id="scaleAfterDesc" type="range" min="0" max="15" value="0">
+                <div class="desc-range-bubble" id="bubbleAfterDesc">0</div>
+                <div class="desc-scale-numbers">
+                <span>0</span><span>5</span><span>10</span><span>15</span>
+              </div>
+            </div>
+
+            <div class="desc-cata">
+              <div class="cata-col">
+                <div class="cata-group cata-group-single">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Цветочный"> Цветочный</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Фруктовый"> Фруктовый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Ягодный"> Ягодный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Сухофрукты"> Сухофрукты</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Цитрусовые"> Цитрусовые</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Кислый/Ферментированный"> Кислый/Ферментированный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Кислый"> Кислый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Ферментированный"> Ферментированный</label>
+                </div>
+                <div class="cata-group cata-group-single">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Зелёный/Растительный"> Зелёный/Растительный</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Другие"> Другие</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Химический"> Химический</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Землистый/Затхлый"> Землистый/Затхлый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Древесный"> Древесный</label>
+                </div>
+              </div>
+              <div class="cata-col">
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Жареный"> Жареный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Злаки"> Злаки</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Жжёный"> Жжёный</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Табак"> Табак</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Ореховый/Какао"> Ореховый/Какао</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Ореховый"> Ореховый</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Какао"> Какао</label>
+                </div>
+                <div class="cata-group cata-group-single">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Пряный"> Пряный</label>
+                </div>
+                <div class="cata-group">
+                  <label class="cata-main"><input type="checkbox" data-check="after" value="Сладкий"> Сладкий</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Ваниль/Ванилин"> Ваниль/Ванилин</label>
+                  <label class="cata-sub"><input type="checkbox" data-check="after" value="Коричневый Сахар"> Коричневый Сахар</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="desc-after-layout">
+              <div>
+                <div class="desc-base-title">Базовые вкусы (2)</div>
+                <div class="desc-base" id="descBaseDisplay">
+                  <span class="desc-base-empty">Не выбрано</span>
+                </div>
+              </div>
+              <div>
+                <button type="button" class="btn small" id="btnOpenBaseModal">
+                  Выбрать базовые вкусы
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="desc-notes-cell">
+            <div class="desc-notes-title">Заметки</div>
+            <textarea class="desc-notes" id="notesAfter" placeholder=""></textarea>
+          </div>
+        </div>
+
+        <div class="desc-table-row compact">
+          <div class="desc-main-cell">
+            <div class="desc-sense-title">Кислотность</div>
+            <div class="desc-intensity">Интенсивность</div>
+            <div class="desc-scale">
+              <div class="desc-scale-top"><span>низкая</span><span>средняя</span><span>высокая</span></div>
+              <input class="desc-range" id="scaleAcidDesc" type="range" min="0" max="15" value="0">
+                <div class="desc-range-bubble" id="bubbleAcidDesc">0</div>
+                <div class="desc-scale-numbers">
+                <span>0</span><span>5</span><span>10</span><span>15</span>
+              </div>
+            </div>
+          </div>
+          <div class="desc-notes-cell">
+            <div class="desc-notes-title">Заметки</div>
+            <textarea class="desc-notes" id="notesAcid" placeholder=""></textarea>
+          </div>
+        </div>
+
+        <div class="desc-table-row compact">
+          <div class="desc-main-cell">
+            <div class="desc-sense-title">Сладость</div>
+            <div class="desc-intensity">Интенсивность</div>
+            <div class="desc-scale">
+              <div class="desc-scale-top"><span>низкая</span><span>средняя</span><span>высокая</span></div>
+              <input class="desc-range" id="scaleSweetDesc" type="range" min="0" max="15" value="0">
+                <div class="desc-range-bubble" id="bubbleSweetDesc">0</div>
+                <div class="desc-scale-numbers">
+                <span>0</span><span>5</span><span>10</span><span>15</span>
+              </div>
+            </div>
+          </div>
+          <div class="desc-notes-cell">
+            <div class="desc-notes-title">Заметки</div>
+            <textarea class="desc-notes" id="notesSweet" placeholder=""></textarea>
+          </div>
+        </div>
+
+        <div class="desc-table-row compact">
+          <div class="desc-main-cell">
+            <div class="desc-sense-title">Тактильность</div>
+            <div class="desc-intensity">Интенсивность</div>
+            <div class="desc-scale">
+              <div class="desc-scale-top"><span>низкая</span><span>средняя</span><span>высокая</span></div>
+              <input class="desc-range" id="scaleTactileDesc" type="range" min="0" max="15" value="0">
+                <div class="desc-range-bubble" id="bubbleTactileDesc">0</div>
+                <div class="desc-scale-numbers">
+                <span>0</span><span>5</span><span>10</span><span>15</span>
+              </div>
+            </div>
+            <div class="desc-tactile">
+              <label class="desc-check"><input type="checkbox" data-check="tactile" value="Шероховатый"> Шероховатый (Песчанистый, Меловой, Пыльный)</label>
+              <label class="desc-check"><input type="checkbox" data-check="tactile" value="Маслянистый"> Маслянистый</label>
+              <label class="desc-check"><input type="checkbox" data-check="tactile" value="Гладкий"> Гладкий (Бархатистый, Шелковистый, Сиропистый)</label>
+              <label class="desc-check"><input type="checkbox" data-check="tactile" value="Сушащий"> Сушащий</label>
+              <label class="desc-check"><input type="checkbox" data-check="tactile" value="Металлический"> Металлический</label>
+            </div>
+          </div>
+          <div class="desc-notes-cell">
+            <div class="desc-notes-title">Заметки</div>
+            <textarea class="desc-notes" id="notesTactile" placeholder=""></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="desc-save">
+        <button class="btn primary" id="btnSaveDescriptive">Сохранить результаты всех лотов</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== РАЗДЕЛ: АФФЕКТИВНАЯ ФОРМА ====================== -->
+  <section class="title-screen" id="screenAffective">
+    <div class="section-header">
+      <button class="back-home" data-back>← На главную</button>
+      <h2>Аффективная форма</h2>
+    </div>
+
+    <div class="card">
+      <h2>Ваши заметки</h2>
+      <textarea id="notes" placeholder="Личные впечатления, условия заваривания, что-то ещё..."></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Итоговое описание</h2>
+      <textarea id="result" placeholder="Нажмите «Собрать описание» — здесь появится текст, который можно отредактировать."></textarea>
+      <div class="row">
+        <button class="btn primary" id="btnBuild">Собрать описание</button>
+        <button class="btn" id="btnCopy">Скопировать</button>
+      </div>
+      <div class="row">
+        <input type="text" id="coffeeName" placeholder="Название кофе" autocomplete="off">
+        <button class="btn" id="btnSave">Сохранить дегустацию</button>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="btnClear">Очистить всё</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== РАЗДЕЛ: ИСТОРИЯ ====================== -->
+  <section class="title-screen" id="screenHistory">
+    <div class="section-header">
+      <button class="back-home" data-back>← На главную</button>
+      <h2>История дегустаций</h2>
+    </div>
+
+    <section class="card">
+      <h2>
+        Сохранённые записи
+        <button class="btn ghost small" id="btnClearHistory">Очистить</button>
+      </h2>
+      <div id="history"></div>
+    </section>
+  </section>
+
+  <!-- ====================== РАЗДЕЛ: SCA-КОЛЕСО (результат дегустации) ====================== -->
+  <section class="title-screen" id="screenSCA">
+    <div class="section-header">
+      <button class="back-home" id="btnBackFromSCA">← Назад к дегустации</button>
+      <h2>Результат дегустации</h2>
+    </div>
+
+    <section class="card">
+      <h2>
+        Выбрано дескрипторов
+        <span id="scaCount" style="color:var(--accent)">0</span>
+      </h2>
+      <div class="tags" id="scaTags"></div>
+    </section>
+
+    <div class="card">
+      <h2>Карта вкусов SCA</h2>
+      <div class="wheel-container">
+        <svg class="wheel-svg" id="scaSvg" viewBox="0 0 700 700"></svg>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" id="btnSaveResult">Сохранить результат</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- ====================== МОДАЛЬНОЕ ОКНО: МЕТАДАННЫЕ КОФЕ ====================== -->
+<div class="modal-backdrop" id="coffeeMetaModal">
+  <div class="modal-card">
+    <h3>Информация о кофе</h3>
+    <p class="sub">Заполните данные — они сохранятся вместе с результатом.</p>
+
+    <div class="modal-field">
+      <label for="metaCountry">Страна</label>
+      <input type="text" id="metaCountry" placeholder="Например: Колумбия" autocomplete="off">
+    </div>
+
+    <div class="modal-field">
+      <label for="metaCoop">Кооператив / ферма</label>
+      <input type="text" id="metaCoop" placeholder="Например: Finca El Paraiso" autocomplete="off">
+    </div>
+
+    <div class="modal-field">
+      <label for="metaProcess">Обработка</label>
+      <input type="text" id="metaProcess" placeholder="Например: мытая / натуральная / хани" autocomplete="off">
+    </div>
+
+    <div class="modal-field">
+      <label for="metaRoast">Дата обжарки</label>
+      <input type="text" id="metaRoast" placeholder="Например: 12.08.2026" autocomplete="off">
+    </div>
+
+    <div class="modal-error" id="metaError">Заполните все поля</div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="btnMetaCancel">Отмена</button>
+      <button class="btn primary" id="btnMetaSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== МОДАЛЬНОЕ ОКНО: ВЫБОР ЧИСЛА ЛОТОВ ====================== -->
+<div class="modal-backdrop" id="lotsCountModal">
+  <div class="modal-card">
+    <h3>Сколько лотов?</h3>
+    <p class="sub">Выберите количество образцов для этой сессии дегустации (1–30).</p>
+
+    <div class="lots-grid" id="lotsGrid"></div>
+    <div class="modal-error" id="lotsError">Выберите хотя бы один лот</div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="btnLotsCancel">Отмена</button>
+      <button class="btn primary" id="btnLotsConfirm">Продолжить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== МОДАЛЬНОЕ ОКНО: БОЛЬШОЕ КОЛЕСО ИЗ ИСТОРИИ ====================== -->
+<div class="modal-backdrop wide" id="historyWheelModal">
+  <div class="modal-card">
+    <h3>
+      <span>Карта вкусов</span>
+      <button class="btn ghost small" id="btnCloseHistoryWheel">Закрыть</button>
+    </h3>
+    <div class="modal-wheel-meta" id="historyWheelMeta"></div>
+    <div class="modal-wheel-wrap" id="historyWheelWrap"></div>
+  </div>
+</div>
+
+<!-- ====================== МОДАЛЬНОЕ ОКНО: ОПИСАТЕЛЬНАЯ ДЕГУСТАЦИЯ ИЗ ИСТОРИИ ====================== -->
+<div class="modal-backdrop wide" id="historyDescriptiveModal">
+  <div class="modal-card">
+    <h3>
+      <span>Дескриптивная дегустация</span>
+      <button class="btn ghost small" id="btnCloseHistoryDescriptive">Закрыть</button>
+    </h3>
+    <div class="modal-wheel-meta" id="historyDescriptiveMeta"></div>
+    <div id="historyDescriptiveBody"></div>
+  </div>
+</div>
+
+<!-- ====================== МОДАЛЬНОЕ ОКНО: БАЗОВЫЕ ВКУСЫ ====================== -->
+<div class="modal-backdrop" id="baseTastesModal">
+  <div class="modal-card">
+    <h3>Базовые вкусы</h3>
+    <p class="sub">Отметьте базовые вкусы.</p>
+
+    <div class="base-tastes-grid" id="baseTastesGrid">
+      <label class="base-taste-item">
+        <input type="checkbox" data-check="after-base" value="Солёный">
+        <span>Солёный</span>
+      </label>
+      <label class="base-taste-item">
+        <input type="checkbox" data-check="after-base" value="Кислый">
+        <span>Кислый</span>
+      </label>
+      <label class="base-taste-item">
+        <input type="checkbox" data-check="after-base" value="Сладкий">
+        <span>Сладкий</span>
+      </label>
+      <label class="base-taste-item">
+        <input type="checkbox" data-check="after-base" value="Горький">
+        <span>Горький</span>
+      </label>
+      <label class="base-taste-item">
+        <input type="checkbox" data-check="after-base" value="Умами">
+        <span>Умами</span>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="btnBaseCancel">Отмена</button>
+      <button class="btn primary" id="btnBaseSave">Готово</button>
+    </div>
+  </div>
+</div>
+<script>
+/* =========================================================================
+   1. ДАННЫЕ КОЛЕСА
+   ========================================================================= */
+const WHEEL = {
+  'Фруктовый': {
+    color:'#c44536',
+    sub:{
+      'Цитрусовые':     { color:'#e0904a', items:['лимон','лайм','апельсин','мандарин','грейпфрут','помело','цитрон','апельсиновый цвет'] },
+      'Ягодные':        { color:'#a83244', items:['клубника','малина','черника','смородина','ежевика','голубика','клюква','крыжовник'] },
+      'Косточковые':    { color:'#d06848', items:['персик','абрикос','слива','вишня','нектарин','черешня'] },
+      'Тропические':    { color:'#e8a848', items:['манго','ананас','маракуйя','банан','кокос','папайя','гуава','личи'] },
+      'Сушёные':        { color:'#9c4436', items:['изюм','чернослив','курага','инжир','финик'] },
+      'Другие фрукты':  { color:'#c87050', items:['яблоко','груша','виноград','дыня','арбуз'] }
+    }
+  },
+  'Цветочный': {
+    color:'#a05a8c',
+    sub:{
+      'Цветочные':   { color:'#c088b0', items:['жасмин','жимолость','роза','гибискус','лаванда','фиалка','цветок апельсина','бузина'] },
+      'Травяные':    { color:'#8a6a90', items:['ромашка','мелисса','мята','шалфей','тимьян'] }
+    }
+  },
+  'Сладкий': {
+    color:'#e0b040',
+    sub:{
+      'Карамель':            { color:'#c89030', items:['карамель','ириска','крем-брюле','жжёный сахар'] },
+      'Сахар':               { color:'#e8c870', items:['коричневый сахар','тростниковый сахар','сахарная пудра','меласса'] },
+      'Сладости':            { color:'#f0d8a0', items:['мёд','кленовый сироп','ваниль','шоколадный сироп'] },
+      'Фруктовая сладость':  { color:'#d8a848', items:['сладкое яблоко','груша','виноград'] }
+    }
+  },
+  'Шоколадный': {
+    color:'#5c3a28',
+    sub:{
+      'Какао':              { color:'#7a4a30', items:['какао','какао-бобы','какао-масло'] },
+      'Шоколадные десерты': { color:'#4a2a18', items:['тёмный шоколад','молочный шоколад','белый шоколад','брауни','шоколадный торт','трюфель'] }
+    }
+  },
+  'Ореховый': {
+    color:'#b89060',
+    sub:{
+      'Орехи':  { color:'#c8a878', items:['миндаль','фундук','грецкий орех','арахис','кешью','пекан','фисташки','макадамия'] },
+      'Семена': { color:'#a87848', items:['кунжут','семечки подсолнечника','семечки тыквы','мак'] }
+    }
+  },
+  'Пряный': {
+    color:'#a03a28',
+    sub:{
+      'Тёплые специи':{ color:'#b85038', items:['корица','гвоздика','мускатный орех','кардамон','имбирь','перец душистый'] },
+      'Пряности':     { color:'#c06848', items:['чёрный перец','белый перец','чили','паприка','куркума'] },
+      'Травы':        { color:'#8a4a30', items:['розмарин','базилик','орегано','укроп'] }
+    }
+  },
+  'Зерновой': {
+    color:'#9c8840',
+    sub:{
+      'Зерно':   { color:'#b8a060', items:['злаки','солод','овсянка','ячмень','рожь','пшеница'] },
+      'Хлеб':    { color:'#a89050', items:['свежий хлеб','тост','сухари','круассан'] },
+      'Жареное': { color:'#806830', items:['жареные злаки','жареный солод','попкорн'] }
+    }
+  },
+  'Другие': {
+    color:'#6b8a60',
+    sub:{
+      'Растительные': { color:'#7a9a68', items:['чай','табак','травы','сено','листья'] },
+      'Землистые':    { color:'#5a6a48', items:['земля','грибы','лесная подстилка','мох'] },
+      'Древесные':    { color:'#8a9a78', items:['древесина','кедр','дуб','сосна','сандал'] },
+      'Минеральные':  { color:'#7a8a70', items:['минералы','металл','соль'] },
+      'Химические':   { color:'#5a6a50', items:['резина','фенол','дым','пепел'] }
+    }
+  }
+};
+const GEN = {
+  'лимон':'лимона','лайм':'лайма','апельсин':'апельсина','мандарин':'мандарина','грейпфрут':'грейпфрута',
+  'клубника':'клубники','малина':'малины','черника':'черники','смородина':'смородины','ежевика':'ежевики',
+  'персик':'персика','абрикос':'абрикоса','слива':'сливы','вишня':'вишни',
+  'манго':'манго','ананас':'ананаса','маракуйя':'маракуйи','банан':'банана',
+  'жасмин':'жасмина','жимолость':'жимолости','апельсиновый цвет':'апельсинового цвета',
+  'роза':'розы','гибискус':'гибискуса','лаванда':'лаванды','фиалка':'фиалки',
+  'карамель':'карамели','ириска':'ириски',
+  'жжёный сахар':'жжёного сахара','коричневый сахар':'коричневого сахара',
+  'мёд':'мёда','кленовый сироп':'кленового сиропа','ваниль':'ванили','сахарная пудра':'сахарной пудры',
+  'какао':'какао','тёмный шоколад':'тёмного шоколада','молочный шоколад':'молочного шоколада',
+  'брауни':'брауни','шоколадный торт':'шоколадного торта',
+  'миндаль':'миндаля','фундук':'фундука','грецкий орех':'грецкого ореха','арахис':'арахиса',
+  'кунжут':'кунжута','семечки':'семечек',
+  'корица':'корицы','гвоздика':'гвоздики','мускатный орех':'мускатного ореха','кардамон':'кардамона',
+  'чёрный перец':'чёрного перца','имбирь':'имбиря',
+  'злаки':'злаков','солод':'солода','овсянка':'овсянки',
+  'свежий хлеб':'свежего хлеба','тост':'тоста','сухари':'сухарей',
+  'чай':'чая','табак':'табака','травы':'трав','земля':'земли','древесина':'древесины'
+};
+
+const BODY_LEVELS = ['лёгкое','среднее','плотное'];
+const BODY_CHARS  = ['чайное','шелковистое','сливочное','сочное','сиропообразное'];
+const AFTER_LEVELS= ['короткое','среднее','продолжительное'];
+const AFTER_CHARS = ['сладкое','фруктовое','шоколадное','ореховое','пряное','сухое'];
+
+/* =========================================================================
+   2. СОСТОЯНИЕ
+   ========================================================================= */
+let state = {
+  cat: null,
+  sub: null,
+  selected: [],
+  bodyLevel: null,
+  bodyChars: [],
+  afterLevel: null,
+  afterChars: [],
+  acid: 0,
+  sweet: 0,
+  aroma: 0,
+  notes: ''
+};
+/* =========================================================================
+   СОСТОЯНИЕ ДЕСКРИПТИВНОЙ ФОРМЫ
+   Хранит массив лотов — по одному на каждую вкладку.
+   ========================================================================= */
+let descState = {
+  lotsCount: 1,
+  currentLot: 0,
+  lots: []
+};
+
+/* =========================================================================
+   ГЕНЕРАЦИЯ 3-ЗНАЧНЫХ КОДОВ ОБРАЗЦОВ
+   Правило: все 3 цифры в коде разные. Первая цифра не может быть 0.
+   Примеры валидных: 147, 305, 682. Невалидные: 111, 121, 232, 100.
+   ========================================================================= */
+function generateSampleCodes(count){
+  const codes = new Set();
+  const maxAttempts = Math.max(count * 200, 1000);
+  let attempts = 0;
+
+  while (codes.size < count && attempts < maxAttempts){
+    attempts++;
+    const d1 = Math.floor(Math.random() * 9) + 1;            /* 1..9 */
+    let d2, d3;
+    do { d2 = Math.floor(Math.random() * 10); } while (d2 === d1);
+    do { d3 = Math.floor(Math.random() * 10); } while (d3 === d1 || d3 === d2);
+    codes.add(String(d1) + String(d2) + String(d3));
+  }
+
+  /* Резервный перебор — на случай, если рандом не набрал нужное количество */
+  if (codes.size < count){
+    for (let a = 1; a <= 9 && codes.size < count; a++){
+      for (let b = 0; b <= 9 && codes.size < count; b++){
+        if (b === a) continue;
+        for (let c = 0; c <= 9 && codes.size < count; c++){
+          if (c === a || c === b) continue;
+          codes.add(String(a) + String(b) + String(c));
+        }
+      }
+    }
+  }
+
+  /* Перемешиваем порядок */
+  const arr = Array.from(codes);
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, count);
+}
+
+/* Возвращает пустой лот — с нулями, пустыми массивами, пустыми заметками. */
+function emptyLot(){
+  return {
+    sample: '',
+    smell: 0, aroma: 0, bouquet: 0, after: 0, acid: 0, sweet: 0, tactile: 0,
+    aromaChecks: [],
+    afterChecks: [],
+    afterBaseChecks: [],
+    tactileChecks: [],
+    notesSmell: '',
+    notesAroma: '',
+    notesAfter: '',
+    notesAcid: '',
+    notesSweet: '',
+    notesTactile: ''
+  };
+}
+
+/* Пересоздаёт массив лотов на нужное количество.
+   Если передан массив codes — коды подставляются в поле sample каждого лота.
+   Если codes не передан — коды генерируются автоматически. */
+function initDescLots(count, codes){
+  descState.lotsCount = count;
+  descState.currentLot = 0;
+  descState.lots = [];
+
+  const sampleCodes = (codes && codes.length >= count)
+    ? codes
+    : generateSampleCodes(count);
+
+  for (let i = 0; i < count; i++){
+    const lot = emptyLot();
+    lot.sample = sampleCodes[i] || '';
+    descState.lots.push(lot);
+  }
+}
+/* Возвращает текущий лот. */
+function getCurrentLot(){
+  return descState.lots[descState.currentLot];
+}
+
+/* Собирает value выбранных чекбоксов группы. */
+function collectChecks(group){
+  const arr = [];
+  document.querySelectorAll('input[data-check="' + group + '"]:checked').forEach(cb => {
+    arr.push(cb.value);
+  });
+  return arr;
+}
+
+/* Считывает все поля формы в текущий лот. */
+function readFormIntoLot(){
+  const lot = getCurrentLot();
+  if (!lot) return;
+
+  lot.sample = document.getElementById('descSample').value;
+
+  lot.smell    = Number(document.getElementById('scaleSmellDesc').value);
+  lot.aroma    = Number(document.getElementById('scaleAromaDesc').value);
+  lot.bouquet  = Number(document.getElementById('scaleBouquetDesc').value);
+  lot.after    = Number(document.getElementById('scaleAfterDesc').value);
+  lot.acid     = Number(document.getElementById('scaleAcidDesc').value);
+  lot.sweet    = Number(document.getElementById('scaleSweetDesc').value);
+  lot.tactile  = Number(document.getElementById('scaleTactileDesc').value);
+
+  lot.notesSmell   = document.getElementById('notesSmell')   ? document.getElementById('notesSmell').value   : '';
+  lot.notesAroma   = document.getElementById('notesAroma')   ? document.getElementById('notesAroma').value   : '';
+  lot.notesAfter   = document.getElementById('notesAfter')   ? document.getElementById('notesAfter').value   : '';
+  lot.notesAcid    = document.getElementById('notesAcid')    ? document.getElementById('notesAcid').value    : '';
+  lot.notesSweet   = document.getElementById('notesSweet')   ? document.getElementById('notesSweet').value   : '';
+  lot.notesTactile = document.getElementById('notesTactile') ? document.getElementById('notesTactile').value : '';
+
+  lot.aromaChecks     = collectChecks('aroma');
+  lot.afterChecks     = collectChecks('after');
+  lot.afterBaseChecks = collectChecks('after-base');
+  lot.tactileChecks   = collectChecks('tactile');
+}
+
+/* Загружает поля из текущего лота в форму. */
+function writeLotIntoForm(){
+  const lot = getCurrentLot();
+  if (!lot) return;
+
+  document.getElementById('descSample').value = lot.sample;
+
+  document.getElementById('scaleSmellDesc').value   = lot.smell;
+  document.getElementById('scaleAromaDesc').value   = lot.aroma;
+  document.getElementById('scaleBouquetDesc').value = lot.bouquet;
+  document.getElementById('scaleAfterDesc').value   = lot.after;
+  document.getElementById('scaleAcidDesc').value    = lot.acid;
+  document.getElementById('scaleSweetDesc').value   = lot.sweet;
+  document.getElementById('scaleTactileDesc').value = lot.tactile;
+
+  /* Обновляем пузырьки-счётчики — двигаем их на нужную позицию */
+  ['smell','aroma','bouquet','after','acid','sweet','tactile'].forEach(key => {
+    const inp = document.getElementById('scale' + key.charAt(0).toUpperCase() + key.slice(1) + 'Desc');
+    const bub = document.getElementById('bubble' + key.charAt(0).toUpperCase() + key.slice(1) + 'Desc');
+    if (inp && bub && typeof positionBubble === 'function'){
+      positionBubble(inp, bub);
+    }
+  });
+
+  /* Заметки */
+  const setNotes = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  setNotes('notesSmell',   lot.notesSmell);
+  setNotes('notesAroma',   lot.notesAroma);
+  setNotes('notesAfter',   lot.notesAfter);
+  setNotes('notesAcid',    lot.notesAcid);
+  setNotes('notesSweet',   lot.notesSweet);
+  setNotes('notesTactile', lot.notesTactile);
+
+  /* Чекбоксы — снимаем все и ставим нужные */
+  const setChecks = (group, arr) => {
+    document.querySelectorAll('input[data-check="' + group + '"]').forEach(cb => {
+      cb.checked = arr.indexOf(cb.value) !== -1;
+    });
+  };
+  setChecks('aroma',      lot.aromaChecks);
+  setChecks('after',      lot.afterChecks);
+  setChecks('after-base', lot.afterBaseChecks);
+  setChecks('tactile',    lot.tactileChecks);
+
+  /* Обновляем чипсы базовых вкусов */
+  if (typeof renderBaseTastesChips === 'function'){
+    renderBaseTastesChips();
+  }
+  /* Открываем группы, у которых отмечен жирный родитель */
+  setTimeout(() => {
+    document.querySelectorAll('.cata-group').forEach(group => {
+      const mainCb = group.querySelector('.cata-main input');
+      if (mainCb && mainCb.checked){
+        group.classList.add('open');
+      } else {
+        group.classList.remove('open');
+      }
+    });
+  }, 0);
+}
+let prevShapes = {};
+const LS_KEY = 'coffee_wheel_history_v4';
+
+/* =========================================================================
+   3. УТИЛИТЫ
+   ========================================================================= */
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function gen(w){
+  if (GEN[w]) return GEN[w];
+  const parts = w.split(' ');
+  const last = parts.pop();
+  let g;
+  if (/[ая]$/.test(last))      g = last.slice(0,-1) + (/[гкхжчшщ]$/.test(last.slice(0,-2)) ? 'и' : 'ы');
+  else if (/[ьй]$/.test(last)) g = last.slice(0,-1) + 'и';
+  else if (/о$/.test(last))    g = last;
+  else                         g = last + 'а';
+  parts.push(g);
+  return parts.join(' ');
+}
+function joinRu(arr){
+  if (!arr.length) return '';
+  if (arr.length === 1) return arr[0];
+  return arr.slice(0,-1).join(', ') + ' и ' + arr[arr.length-1];
+}
+function genList(arr){ return joinRu(arr.map(gen)); }
+function byCat(c){ return state.selected.filter(d => d.cat === c).map(d => d.name); }
+function levelWordAcid(v){
+  if (v === 0) return 'отсутствует';
+  if (v <= 3)  return 'низкая';
+  if (v <= 7)  return 'умеренная';
+  if (v <= 11) return 'высокая';
+  return 'очень высокая';
+}
+function levelWordSweet(v){
+  if (v === 0) return 'отсутствует';
+  if (v <= 3)  return 'низкая';
+  if (v <= 7)  return 'умеренная';
+  if (v <= 11) return 'высокая';
+  return 'очень высокая';
+}
+function levelWordAroma(v){
+  if (v === 0) return 'не выражен';
+  if (v <= 3)  return 'лёгкий';
+  if (v <= 7)  return 'умеренный';
+  if (v <= 11) return 'яркий';
+  return 'интенсивный';
+}
+
+/* =========================================================================
+   4. SVG-КОЛЕСО
+   ========================================================================= */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const CX = 300, CY = 300;
+
+const R_OUTER_BASE = 288;
+const R_INNER_BASE = 4;
+
+function getRingBounds(nLevels){
+  const R_INNER = R_INNER_BASE;
+  const R_OUTER = R_OUTER_BASE;
+  const span    = R_OUTER - R_INNER;
+
+  if (nLevels === 1){
+    return {
+      cat:  { r0: R_INNER, r1: R_OUTER },
+      sub:  null,
+      item: null
+    };
+  }
+
+  if (nLevels === 2){
+    const rMid = R_INNER + span * 0.50;
+    return {
+      cat:  { r0: R_INNER, r1: rMid },
+      sub:  { r0: rMid,    r1: R_OUTER },
+      item: null
+    };
+  }
+
+  const rMid1 = R_INNER + span * 0.30;
+  const rMid2 = R_INNER + span * 0.80;
+  return {
+    cat:  { r0: R_INNER, r1: rMid1 },
+    sub:  { r0: rMid1,   r1: rMid2 },
+    item: { r0: rMid2,   r1: R_OUTER }
+  };
+}
+function polar(r, angleDeg){
+  const rad = (angleDeg - 90) * Math.PI / 180;
+  return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
+}
+function annulusPath(rOuter, rInner, startAngle, endAngle){
+  const p1 = polar(rOuter, startAngle);
+  const p2 = polar(rOuter, endAngle);
+  const p3 = polar(rInner, endAngle);
+  const p4 = polar(rInner, startAngle);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return [
+    `M ${p1.x} ${p1.y}`,
+    `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${p2.x} ${p2.y}`,
+    `L ${p3.x} ${p3.y}`,
+    `A ${rInner} ${rInner} 0 ${largeArc} 0 ${p4.x} ${p4.y}`,
+    'Z'
+  ].join(' ');
+}
+function contrastColor(hex){
+  const c = hex.replace('#','');
+  const r = parseInt(c.substr(0,2),16);
+  const g = parseInt(c.substr(2,2),16);
+  const b = parseInt(c.substr(4,2),16);
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.65 ? 'on-light' : '';
+}
+
+function makeSector({ r0, r1, a0, a1, fill, key, isFresh, isDim, isSelected, prevD }){
+  const path = document.createElementNS(SVG_NS, 'path');
+  const newD = annulusPath(r1, r0, a0, a1);
+
+  if (prevD && prevD !== newD){
+    path.setAttribute('d', prevD);
+    const anim = document.createElementNS(SVG_NS, 'animate');
+    anim.setAttribute('attributeName', 'd');
+    anim.setAttribute('from', prevD);
+    anim.setAttribute('to', newD);
+    anim.setAttribute('dur', '1.2s');
+    anim.setAttribute('fill', 'freeze');
+    anim.setAttribute('calcMode', 'spline');
+    anim.setAttribute('keySplines', '0.25 0.1 0.25 1');
+    path.appendChild(anim);
+    setTimeout(() => { path.setAttribute('d', newD); }, 1250);
+  } else {
+    path.setAttribute('d', newD);
+  }
+
+  path.setAttribute('fill', fill);
+  path.setAttribute('class',
+    'sector' +
+    (isSelected ? ' selected' : '') +
+    (isDim      ? ' dim'      : '')
+  );
+  if (key) path.dataset[key.name] = key.value;
+  return path;
+}
+
+function wrapText(text){
+  const trimmed = text.trim();
+  const words = trimmed.split(' ');
+
+  if (words.length === 1){
+    if (trimmed.length <= 8) return [trimmed];
+    const mid = Math.ceil(trimmed.length / 2);
+    return [trimmed.slice(0, mid), trimmed.slice(mid)];
+  }
+
+  if (words.length === 2){
+    return [words[0], words[1]];
+  }
+
+  let bestSplit = 1;
+  let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++){
+    const left  = words.slice(0, i).join(' ');
+    const right = words.slice(i).join(' ');
+    const diff  = Math.abs(left.length - right.length);
+    if (diff < bestDiff){ bestDiff = diff; bestSplit = i; }
+  }
+  const left  = words.slice(0, bestSplit).join(' ');
+  const right = words.slice(bestSplit).join(' ');
+  return [left, right];
+}
+
+function makeLabel({ r0, r1, a0, a1, text, textClass, isDim, orient, rotation, id }){
+  const mid = (a0 + a1) / 2;
+  const rr = orient === 'vertical'
+    ? r0 + (r1 - r0) * 0.6
+    : (r0 + r1) / 2;
+
+  const startA = a0;
+  const endA   = a1;
+
+  const largeArc = (endA - startA) > 180 ? 1 : 0;
+
+  const p1 = polar(rr, startA + rotation);
+  const p2 = polar(rr, endA + rotation);
+
+  const pathId = 'label-path-' + id;
+  const pathD = `M ${p1.x} ${p1.y} A ${rr} ${rr} 0 ${largeArc} 1 ${p2.x} ${p2.y}`;
+
+  const wrapper = document.createElementNS(SVG_NS, 'g');
+
+  const pathEl = document.createElementNS(SVG_NS, 'path');
+  pathEl.setAttribute('id', pathId);
+  pathEl.setAttribute('d', pathD);
+  pathEl.setAttribute('fill', 'none');
+  pathEl.setAttribute('stroke', 'none');
+  wrapper.appendChild(pathEl);
+
+  const lines = wrapText(text);
+  const safeLines = lines.map(l => l.length > 10 ? l.slice(0, 9) + '…' : l);
+
+  safeLines.forEach((line, i) => {
+    const t = document.createElementNS(SVG_NS, 'text');
+    const fontSize = 8;
+    t.setAttribute('style', `font-size:${fontSize}px`);
+    t.setAttribute('class', (textClass || '') + (isDim ? ' dim' : ''));
+    t.setAttribute('dominant-baseline', 'middle');
+
+    if (safeLines.length > 1){
+      const offset = (i - (safeLines.length - 1) / 2) * 8;
+      t.setAttribute('dy', offset);
+    }
+
+    const textPath = document.createElementNS(SVG_NS, 'textPath');
+    textPath.setAttribute('href', '#' + pathId);
+    textPath.setAttribute('startOffset', '50%');
+    textPath.setAttribute('text-anchor', 'middle');
+    textPath.textContent = line;
+
+    t.appendChild(textPath);
+    wrapper.appendChild(t);
+  });
+
+  return wrapper;
+}
+
+function countItemsInCat(cat){
+  const subs = WHEEL[cat].sub;
+  let total = 0;
+  for (const sub in subs){
+    total += subs[sub].items.length;
+  }
+  return total;
+}
+
+function distributeAngles(cats, selectedCatIdx){
+  const n = cats.length;
+  const angles = [];
+  let cur = 0;
+
+  if (selectedCatIdx === -1){
+    const step = 360 / n;
+    for (let i = 0; i < n; i++){
+      angles.push({ a0: cur, a1: cur + step });
+      cur += step;
+    }
+    return angles;
+  }
+
+  const SELECTED_SPAN = 160;
+  const REST_SPAN     = (360 - SELECTED_SPAN) / (n - 1);
+
+  for (let i = 0; i < n; i++){
+    const span = (i === selectedCatIdx) ? SELECTED_SPAN : REST_SPAN;
+    angles.push({ a0: cur, a1: cur + span });
+    cur += span;
+  }
+  return angles;
+}
+
+function renderWheel(){
+  const svg = document.getElementById('wheelSvg');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const cats = Object.keys(WHEEL);
+  const selectedCatIdx = state.cat ? cats.indexOf(state.cat) : -1;
+  const catAngles = distributeAngles(cats, selectedCatIdx);
+
+  let levels = 1;
+  if (state.cat) levels = 2;
+  if (state.cat && state.sub) levels = 3;
+
+  const bounds = getRingBounds(levels);
+
+  let rotation = 0;
+  if (state.cat){
+    const catSlot = catAngles[selectedCatIdx];
+    const catCenter = (catSlot.a0 + catSlot.a1) / 2;
+    rotation = -90 - catCenter;
+
+    if (state.sub){
+      const subs = Object.keys(WHEEL[state.cat].sub);
+      const selectedSubIdx = subs.indexOf(state.sub);
+      const catSpan = catSlot.a1 - catSlot.a0;
+      const subWeights = subs.map((_, i) =>
+        i === selectedSubIdx ? 3 : 1
+      );
+      const subTotal = subWeights.reduce((a, b) => a + b, 0);
+      let cur = catSlot.a0;
+      let subCenter = catSlot.a0;
+      for (let i = 0; i < subs.length; i++){
+        const span = catSpan * subWeights[i] / subTotal;
+        if (i === selectedSubIdx) subCenter = cur + span / 2;
+        cur += span;
+      }
+      rotation = -90 - subCenter;
+    }
+    rotation += 90;
+  }
+
+  const sectorsLayer = document.createElementNS(SVG_NS, 'g');
+  sectorsLayer.style.transformOrigin = `${CX}px ${CY}px`;
+  sectorsLayer.style.transition = 'transform .65s cubic-bezier(.22,.9,.32,1.05)';
+  sectorsLayer.style.transform = `rotate(${rotation}deg)`;
+  svg.appendChild(sectorsLayer);
+
+  const labelsLayer = document.createElementNS(SVG_NS, 'g');
+  labelsLayer.style.pointerEvents = 'none';
+  svg.appendChild(labelsLayer);
+
+  cats.forEach((cat, i) => {
+    const selected = state.cat === cat;
+    const dim = !!state.cat && !selected;
+    const { a0, a1 } = catAngles[i];
+
+    const r0 = R_INNER_BASE;
+    const r1 = state.cat ? bounds.cat.r1 : R_OUTER_BASE;
+
+    const shapeKey = 'cat-' + i;
+    const newD = annulusPath(r1, r0, a0, a1);
+    const oldD = prevShapes[shapeKey];
+    prevShapes[shapeKey] = newD;
+
+    const sector = makeSector({
+      r0, r1, a0, a1,
+      fill: WHEEL[cat].color,
+      key: { name: 'cat', value: cat },
+      isSelected: selected,
+      isDim: dim,
+      isFresh: false,
+      prevD: oldD
+    });
+    sectorsLayer.appendChild(sector);
+
+    const label = makeLabel({
+      r0, r1, a0, a1,
+      text: cat,
+      textClass: contrastColor(WHEEL[cat].color),
+      isDim: dim,
+      orient: 'horizontal',
+      rotation,
+      id: 'cat-' + i
+    });
+    labelsLayer.appendChild(label);
+  });
+
+  if (state.cat && bounds.sub){
+    const subs = Object.keys(WHEEL[state.cat].sub);
+    const catSlot = catAngles[selectedCatIdx];
+    const catStart = catSlot.a0;
+    const catSpan  = catSlot.a1 - catSlot.a0;
+
+    const selectedSubIdx = state.sub ? subs.indexOf(state.sub) : -1;
+    const nSub = subs.length;
+
+    let subAngles = [];
+    let cur = catStart;
+
+    if (selectedSubIdx === -1){
+      const step = catSpan / nSub;
+      subAngles = subs.map(() => {
+        const slot = { a0: cur, a1: cur + step };
+        cur += step;
+        return slot;
+      });
+    } else {
+      const SELECTED_SPAN = 100;
+      const restSpan = (catSpan - SELECTED_SPAN) / (nSub - 1);
+      subAngles = subs.map((_, i) => {
+        const span = (i === selectedSubIdx) ? SELECTED_SPAN : restSpan;
+        const slot = { a0: cur, a1: cur + span };
+        cur += span;
+        return slot;
+      });
+    }
+    subs.forEach((sub, j) => {
+      const selected = state.sub === sub;
+      const dim = !!state.sub && !selected;
+      const { a0, a1 } = subAngles[j];
+
+      const shapeKey = 'sub-' + j;
+      const newD = annulusPath(bounds.sub.r1, bounds.sub.r0, a0, a1);
+      const oldD = prevShapes[shapeKey];
+      prevShapes[shapeKey] = newD;
+
+      const sector = makeSector({
+        r0: bounds.sub.r0, r1: bounds.sub.r1, a0, a1,
+        fill: WHEEL[state.cat].sub[sub].color,
+        key: { name: 'sub', value: sub },
+        isSelected: selected,
+        isDim: dim,
+        isFresh: true,
+        prevD: oldD
+      });
+      sectorsLayer.appendChild(sector);
+
+      const label = makeLabel({
+        r0: bounds.sub.r0, r1: bounds.sub.r1, a0, a1,
+        text: sub,
+        textClass: contrastColor(WHEEL[state.cat].sub[sub].color),
+        isDim: dim,
+        orient: 'horizontal',
+        rotation,
+        id: 'sub-' + j
+      });
+      labelsLayer.appendChild(label);
+    });
+  }
+
+  if (state.cat && state.sub && bounds.item){
+    const subs = Object.keys(WHEEL[state.cat].sub);
+    const selectedSubIdx = subs.indexOf(state.sub);
+    const nSub = subs.length;
+    const catSlot = catAngles[selectedCatIdx];
+    const catSpan = catSlot.a1 - catSlot.a0;
+
+    const SELECTED_SPAN = 100;
+    const restSpan = (catSpan - SELECTED_SPAN) / (nSub - 1);
+
+    let cur = catSlot.a0;
+    let subStart = catSlot.a0, subSpan = 0;
+    for (let i = 0; i < nSub; i++){
+      const span = (i === selectedSubIdx) ? SELECTED_SPAN : restSpan;
+      if (i === selectedSubIdx){ subStart = cur; subSpan = span; }
+      cur += span;
+    }
+    const items = WHEEL[state.cat].sub[state.sub].items;
+    const nItems = items.length;
+    const stepItem = subSpan / nItems;
+
+    items.forEach((item, k) => {
+      const a0 = subStart + k * stepItem;
+      const a1 = a0 + stepItem;
+      const isSelected = state.selected.some(s =>
+        s.name === item && s.cat === state.cat && s.sub === state.sub);
+
+      const shapeKey = 'item-' + k;
+      const newD = annulusPath(bounds.item.r1, bounds.item.r0, a0, a1);
+      const oldD = prevShapes[shapeKey];
+      prevShapes[shapeKey] = newD;
+
+      const sector = makeSector({
+        r0: bounds.item.r0, r1: bounds.item.r1, a0, a1,
+        fill: WHEEL[state.cat].sub[state.sub].color,
+        key: { name: 'item', value: item },
+        isSelected,
+        isDim: false,
+        isFresh: true,
+        prevD: oldD
+      });
+      sectorsLayer.appendChild(sector);
+
+      const label = makeLabel({
+        r0: bounds.item.r0, r1: bounds.item.r1, a0, a1,
+        text: item,
+        textClass: contrastColor(WHEEL[state.cat].sub[state.sub].color),
+        isDim: false,
+        orient: 'vertical',
+        rotation,
+        id: 'item-' + k
+      });
+      labelsLayer.appendChild(label);
+    });
+  }
+
+  const hintTop = document.getElementById('wheelHint');
+  if (!state.cat){
+    hintTop.textContent = 'Нажмите категорию';
+  } else if (!state.sub){
+    hintTop.textContent = state.cat + ' — выберите подкатегорию';
+  } else {
+    hintTop.textContent = state.cat + ' → ' + state.sub + ' — выберите дескриптор';
+  }
+}
+
+/* =========================================================================
+   4b. SCA-КОЛЕСО
+   ========================================================================= */
+function groupSelected(){
+  const result = {};
+  for (const d of state.selected){
+    if (!result[d.cat]) result[d.cat] = {};
+    if (!result[d.cat][d.sub]) result[d.cat][d.sub] = [];
+    if (!result[d.cat][d.sub].includes(d.name)){
+      result[d.cat][d.sub].push(d.name);
+    }
+  }
+  return result;
+}
+
+function renderSCA(){
+  const svg = document.getElementById('scaSvg');
+  if (!svg) return;
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const countEl = document.getElementById('scaCount');
+  if (countEl) countEl.textContent = state.selected.length;
+
+  const tagsEl = document.getElementById('scaTags');
+  if (tagsEl){
+    if (!state.selected.length){
+      tagsEl.innerHTML = '<span class="empty">Ничего не выбрано</span>';
+    } else {
+      tagsEl.innerHTML = state.selected.map(s => {
+        const color = (WHEEL[s.cat] && WHEEL[s.cat].color) || '#8a5a3b';
+        return `<span class="tag">
+          <span class="dot" style="background:${color}"></span>${esc(s.name)}
+        </span>`;
+      }).join('');
+    }
+  }
+
+  const SCX = 350, SCY = 350;
+  const S_R_INNER = 60;
+  const S_R_OUTER = 330;
+
+  const hasSubs  = state.selected.length > 0;
+  const hasItems = state.selected.length > 0;
+
+  const span = S_R_OUTER - S_R_INNER;
+  const rCat0 = S_R_INNER;
+  const rCat1 = S_R_INNER + span * 4 / 10;
+  const rSub0 = rCat1;
+  const rSub1 = rCat1 + span * 3 / 10;
+  const rItm0 = rSub1;
+  const rItm1 = S_R_OUTER;
+
+  const grouped = groupSelected();
+  const cats = Object.keys(WHEEL);
+
+  const activeCats = cats.filter(c => grouped[c]);
+  const catWeights = cats.map(c => grouped[c] ? 3 : 1);
+  const catTotal   = catWeights.reduce((a, b) => a + b, 0);
+
+  let catAngles = [];
+  let cur = 0;
+  cats.forEach((c, i) => {
+    const spanA = 360 * catWeights[i] / catTotal;
+    catAngles.push({ cat: c, a0: cur, a1: cur + spanA });
+    cur += spanA;
+  });
+
+  const layer = document.createElementNS(SVG_NS, 'g');
+  svg.appendChild(layer);
+
+  catAngles.forEach((slot, i) => {
+    const cat = slot.cat;
+    const isActive = !!grouped[cat];
+
+    const r0 = hasSubs ? rCat0 : S_R_INNER;
+    const r1 = hasSubs ? rCat1 : S_R_OUTER;
+
+    const sector = document.createElementNS(SVG_NS, 'path');
+    sector.setAttribute('d', scaAnnulusPath(SCX, SCY, r1, r0, slot.a0, slot.a1));
+    sector.setAttribute('fill', WHEEL[cat].color);
+    sector.setAttribute('stroke', '#fffdfa');
+    sector.setAttribute('stroke-width', '1');
+    if (!isActive && hasSubs){
+      sector.setAttribute('opacity', '0.35');
+    }
+    layer.appendChild(sector);
+
+    if (hasSubs || isActive){
+      const label = scaMakeLabel({
+        cx: SCX, cy: SCY,
+        r0, r1,
+        a0: slot.a0, a1: slot.a1,
+        text: cat,
+        fill: scaContrast(WHEEL[cat].color),
+        fontSize: 11
+      });
+      layer.appendChild(label);
+    }
+  });
+
+  if (!state.selected.length) return;
+
+  catAngles.forEach(slot => {
+    const cat = slot.cat;
+    const subsOfCat = grouped[cat];
+    if (!subsOfCat) return;
+
+    const catSpan = slot.a1 - slot.a0;
+    const subNames = Object.keys(subsOfCat);
+
+    const subStep = catSpan / subNames.length;
+    let subCur = slot.a0;
+
+    subNames.forEach(subName => {
+      const a0 = subCur;
+      const a1 = subCur + subStep;
+
+      const subColor = (WHEEL[cat].sub[subName] && WHEEL[cat].sub[subName].color) || WHEEL[cat].color;
+
+      const sector = document.createElementNS(SVG_NS, 'path');
+      sector.setAttribute('d', scaAnnulusPath(SCX, SCY, rSub1, rSub0, a0, a1));
+      sector.setAttribute('fill', subColor);
+      sector.setAttribute('stroke', '#fffdfa');
+      sector.setAttribute('stroke-width', '1');
+      layer.appendChild(sector);
+
+      const subLabel = scaMakeLabel({
+        cx: SCX, cy: SCY,
+        r0: rSub0, r1: rSub1,
+        a0, a1,
+        text: subName,
+        fill: scaContrast(subColor),
+        fontSize: 10
+      });
+      layer.appendChild(subLabel);
+
+      const items = subsOfCat[subName];
+      const itemStep = (a1 - a0) / items.length;
+      let itemCur = a0;
+
+      items.forEach(itemName => {
+        const ia0 = itemCur;
+        const ia1 = itemCur + itemStep;
+
+        const itemSector = document.createElementNS(SVG_NS, 'path');
+        itemSector.setAttribute('d', scaAnnulusPath(SCX, SCY, rItm1, rItm0, ia0, ia1));
+        itemSector.setAttribute('fill', subColor);
+        itemSector.setAttribute('stroke', '#fffdfa');
+        itemSector.setAttribute('stroke-width', '1');
+        layer.appendChild(itemSector);
+
+        const itemLabel = scaMakeLabel({
+          cx: SCX, cy: SCY,
+          r0: rItm0, r1: rItm1,
+          a0: ia0, a1: ia1,
+          text: itemName,
+          fill: scaContrast(subColor),
+          fontSize: 9
+        });
+        layer.appendChild(itemLabel);
+
+        itemCur = ia1;
+      });
+
+      subCur = a1;
+    });
+  });
+}
+
+function scaAnnulusPath(cx, cy, rOuter, rInner, startAngle, endAngle){
+  const p1 = scaPolar(cx, cy, rOuter, startAngle);
+  const p2 = scaPolar(cx, cy, rOuter, endAngle);
+  const p3 = scaPolar(cx, cy, rInner, endAngle);
+  const p4 = scaPolar(cx, cy, rInner, startAngle);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return [
+    `M ${p1.x} ${p1.y}`,
+    `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${p2.x} ${p2.y}`,
+    `L ${p3.x} ${p3.y}`,
+    `A ${rInner} ${rInner} 0 ${largeArc} 0 ${p4.x} ${p4.y}`,
+    'Z'
+  ].join(' ');
+}
+function scaPolar(cx, cy, r, angleDeg){
+  const rad = (angleDeg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function scaContrast(hex){
+  const c = hex.replace('#','');
+  const r = parseInt(c.substr(0,2),16);
+  const g = parseInt(c.substr(2,2),16);
+  const b = parseInt(c.substr(4,2),16);
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.65 ? '#2b2320' : '#ffffff';
+}
+
+function scaMakeLabel({ cx, cy, r0, r1, a0, a1, text, fill, fontSize }){
+  const mid = (a0 + a1) / 2;
+  const rr = (r0 + r1) / 2;
+
+  const p1 = scaPolar(cx, cy, rr, a0);
+  const p2 = scaPolar(cx, cy, rr, a1);
+  const largeArc = (a1 - a0) > 180 ? 1 : 0;
+  const pathId = 'sca-path-' + Math.random().toString(36).slice(2, 9);
+
+  const wrapper = document.createElementNS(SVG_NS, 'g');
+
+  const pathEl = document.createElementNS(SVG_NS, 'path');
+  pathEl.setAttribute('id', pathId);
+  pathEl.setAttribute('d', `M ${p1.x} ${p1.y} A ${rr} ${rr} 0 ${largeArc} 1 ${p2.x} ${p2.y}`);
+  pathEl.setAttribute('fill', 'none');
+  pathEl.setAttribute('stroke', 'none');
+  wrapper.appendChild(pathEl);
+
+  const lines = wrapText(text);
+  const safeLines = lines.map(l => l.length > 12 ? l.slice(0, 11) + '…' : l);
+
+  safeLines.forEach((line, i) => {
+    const t = document.createElementNS(SVG_NS, 'text');
+    t.setAttribute('style', `font-size:${fontSize}px; font-weight:600;`);
+    t.setAttribute('fill', fill);
+    t.setAttribute('dominant-baseline', 'middle');
+
+    if (safeLines.length > 1){
+      const offset = (i - (safeLines.length - 1) / 2) * (fontSize + 2);
+      t.setAttribute('dy', offset);
+    }
+
+    const textPath = document.createElementNS(SVG_NS, 'textPath');
+    textPath.setAttribute('href', '#' + pathId);
+    textPath.setAttribute('startOffset', '50%');
+    textPath.setAttribute('text-anchor', 'middle');
+    textPath.textContent = line;
+
+    t.appendChild(textPath);
+    wrapper.appendChild(t);
+  });
+
+  return wrapper;
+}
+
+/* =========================================================================
+   5. ТЕГИ
+   ========================================================================= */
+function renderTags(){
+  const el = document.getElementById('tags');
+  document.getElementById('selCount').textContent = state.selected.length;
+  if (!state.selected.length){
+    el.innerHTML = '<span class="empty">Пока ничего не выбрано</span>';
+    return;
+  }
+  el.innerHTML = state.selected.map((s, i) => {
+    const color = (WHEEL[s.cat] && WHEEL[s.cat].color) || '#8a5a3b';
+    return `<span class="tag">
+      <span class="dot" style="background:${color}"></span>${esc(s.name)}
+      <button type="button" class="tag-x" data-remove="${i}" title="Удалить">×</button>
+    </span>`;
+  }).join('');
+}
+
+/* =========================================================================
+   6. ЭТАП 2
+   ========================================================================= */
+/* Функция renderStage2 больше не нужна — старая описательная форма удалена.
+   Оставляем её заглушкой, чтобы не ломать вызовы в других местах. */
+function renderStage2(){
+  /* ничего не делаем */
+}
+/* =========================================================================
+   7. ГЕНЕРАЦИЯ ОПИСАНИЯ
+   ========================================================================= */
+function buildDescription(){
+  const fruits  = byCat('Фруктовый');
+  const flowers = byCat('Цветочный');
+  const sweets  = byCat('Сладкий');
+  const choc    = byCat('Шоколадный');
+  const nuts    = byCat('Ореховый');
+  const spices  = byCat('Пряный');
+  const grain   = byCat('Зерновой');
+  const other   = byCat('Другие');
+
+  const sentences = [];
+  const aroma = [...fruits, ...flowers];
+  const soft  = [...nuts, ...choc, ...sweets, ...other];
+  const groups = [];
+  if (aroma.length)  groups.push({ nom:'ноты '          + genList(aroma),  acc:'нотами '          + genList(aroma)  });
+  if (soft.length)   groups.push({ nom:'оттенки '       + genList(soft),   acc:'оттенками '       + genList(soft)   });
+  if (spices.length) groups.push({ nom:'пряные ноты '   + genList(spices), acc:'пряными нотами '  + genList(spices) });
+  if (grain.length)  groups.push({ nom:'зерновые ноты ' + genList(grain),  acc:'зерновыми нотами '+ genList(grain)  });
+
+  if (groups.length){
+    let s = 'В чашке раскрываются ' + groups[0].nom;
+    if (groups.length > 1){
+      s += ', дополненные ' + joinRu(groups.slice(1).map(g => g.acc));
+    }
+    sentences.push(s + '.');
+  }
+
+  if (state.acid > 0){
+    const lvl = levelWordAcid(state.acid);
+    const subs = new Set(state.selected.map(s => s.sub));
+    let extra = '';
+    if (subs.has('Цитрусовые'))  extra = ' с цитрусовым характером';
+    else if (subs.has('Ягодные'))     extra = ' с ягодным характером';
+    else if (subs.has('Тропические')) extra = ' с тропическим характером';
+    sentences.push(`Кислотность ${lvl}${extra}.`);
+  }
+  if (state.sweet > 0) sentences.push(`Сладость ${levelWordSweet(state.sweet)}.`);
+  if (state.aroma > 0) sentences.push(`Аромат ${levelWordAroma(state.aroma)}.`);
+
+  const bl = state.bodyLevel, bc = state.bodyChars;
+  if (bl && bc.length) sentences.push(`Тело ${bl}, ${joinRu(bc)}.`);
+  else if (bl)         sentences.push(`Тело ${bl}.`);
+  else if (bc.length)  sentences.push(`Тело ${joinRu(bc)}.`);
+
+  const al = state.afterLevel, ac = state.afterChars;
+  if (al && ac.length) sentences.push(`Послевкусие ${al}, ${joinRu(ac)}.`);
+  else if (al)         sentences.push(`Послевкусие ${al}.`);
+  else if (ac.length)  sentences.push(`Послевкусие ${joinRu(ac)}.`);
+
+  const notes = state.notes.trim();
+  if (notes) sentences.push(notes);
+
+  return sentences.join(' ');
+}
+
+/* =========================================================================
+   8. ИСТОРИЯ
+   ========================================================================= */
+function loadHistory(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+  catch(e){ return []; }
+}
+function persistHistory(h){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(h)); } catch(e){}
+}
+function metaLine(item){
+  const p = item.params, out = [];
+  if (p.acid)  out.push('Кислотность: ' + p.acid + '/15');
+  if (p.sweet) out.push('Сладость: ' + p.sweet + '/15');
+  if (p.aroma) out.push('Аромат: ' + p.aroma + '/15');
+  if (p.bodyLevel || p.bodyChars?.length)
+    out.push('Тело: ' + [p.bodyLevel, (p.bodyChars||[]).join(', ')].filter(Boolean).join(', '));
+  if (p.afterLevel || p.afterChars?.length)
+    out.push('Послевкусие: ' + [p.afterLevel, (p.afterChars||[]).join(', ')].filter(Boolean).join(', '));
+  return out.join(' · ');
+}
+function sourceLabel(src){
+  switch (src){
+    case 'wheel':       return 'Колесо';
+    case 'descriptive': return 'Описательная';
+    case 'affective':   return 'Аффективная';
+    case 'sca':         return 'SCA-результат';
+    default:            return '—';
+  }
+}
+
+function renderMiniWheel(item){
+  const W = 400, H = 400;
+  const cx = 200, cy = 200;
+  const rIn = 30, rOut = 190;
+
+  const span = rOut - rIn;
+  const rCat0 = rIn;
+  const rCat1 = rIn + span * 0.40;
+  const rSub0 = rCat1;
+  const rSub1 = rCat1 + span * 0.30;
+  const rItm0 = rSub1;
+  const rItm1 = rOut;
+
+  const grouped = {};
+  for (const d of (item.descriptors || [])){
+    if (!grouped[d.cat]) grouped[d.cat] = {};
+    if (!grouped[d.cat][d.sub]) grouped[d.cat][d.sub] = [];
+    if (!grouped[d.cat][d.sub].includes(d.name)) grouped[d.cat][d.sub].push(d.name);
+  }
+
+  const cats = Object.keys(WHEEL);
+  const catWeights = cats.map(c => grouped[c] ? 3 : 1);
+  const catTotal = catWeights.reduce((a, b) => a + b, 0);
+
+  let cur = 0;
+  const catAngles = cats.map((c, i) => {
+    const sp = 360 * catWeights[i] / catTotal;
+    const slot = { cat: c, a0: cur, a1: cur + sp };
+    cur += sp;
+    return slot;
+  });
+
+  const parts = [];
+  parts.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`);
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="${rOut + 4}" fill="#f6f1ea"/>`);
+
+  for (const slot of catAngles){
+    const cat = slot.cat;
+    const isActive = !!grouped[cat];
+    const d = miniAnnulus(cx, cy, rCat1, rCat0, slot.a0, slot.a1);
+    const fill = WHEEL[cat].color;
+    const op   = isActive ? '1' : '0.35';
+    parts.push(`<path d="${d}" fill="${fill}" opacity="${op}" stroke="#fffdfa" stroke-width="1"/>`);
+
+    if (isActive && (slot.a1 - slot.a0) >= 8){
+      const mid = (slot.a0 + slot.a1) / 2;
+      const rr  = (rCat0 + rCat1) / 2;
+      const pos = miniPolar(cx, cy, rr, mid);
+      parts.push(`<text x="${pos.x}" y="${pos.y}" font-size="9" font-weight="600"
+                        fill="#ffffff" text-anchor="middle"
+                        dominant-baseline="middle">${esc(cat)}</text>`);
+    }
+  }
+
+  for (const slot of catAngles){
+    const cat = slot.cat;
+    if (!grouped[cat]) continue;
+
+    const subNames = Object.keys(grouped[cat]);
+    const catSpan  = slot.a1 - slot.a0;
+    const subStep  = catSpan / subNames.length;
+    let subCur = slot.a0;
+
+    for (const subName of subNames){
+      const a0 = subCur;
+      const a1 = subCur + subStep;
+
+      const subColor = (WHEEL[cat].sub[subName] && WHEEL[cat].sub[subName].color) || WHEEL[cat].color;
+      const d = miniAnnulus(cx, cy, rSub1, rSub0, a0, a1);
+      parts.push(`<path d="${d}" fill="${subColor}" stroke="#fffdfa" stroke-width="1"/>`);
+
+      const subSpan = a1 - a0;
+      if (subSpan >= 6){
+        const midSub = (a0 + a1) / 2;
+        const rrSub  = (rSub0 + rSub1) / 2;
+        const posSub = miniPolar(cx, cy, rrSub, midSub);
+        const subLines = wrapText(subName).slice(0, 2).map(l =>
+          l.length > 12 ? l.slice(0, 11) + '…' : l
+        );
+        subLines.forEach((line, li) => {
+          const dy = (li - (subLines.length - 1) / 2) * 7;
+          parts.push(`<text x="${posSub.x}" y="${posSub.y + dy}" font-size="6.5" font-weight="600"
+                            fill="#ffffff" text-anchor="middle"
+                            dominant-baseline="middle">${esc(line)}</text>`);
+        });
+      }
+
+      const items = grouped[cat][subName];
+      const itemStep = (a1 - a0) / items.length;
+      let itemCur = a0;
+
+      for (const itemName of items){
+        const ia0 = itemCur;
+        const ia1 = itemCur + itemStep;
+
+        const di = miniAnnulus(cx, cy, rItm1, rItm0, ia0, ia1);
+        parts.push(`<path d="${di}" fill="${subColor}" stroke="#fffdfa" stroke-width="1"/>`);
+
+        const itSpan = ia1 - ia0;
+        if (itSpan >= 5){
+          const midIt = (ia0 + ia1) / 2;
+          const rrIt  = (rItm0 + rItm1) / 2;
+          const posIt = miniPolar(cx, cy, rrIt, midIt);
+          const itLines = wrapText(itemName).slice(0, 2).map(l =>
+            l.length > 10 ? l.slice(0, 9) + '…' : l
+          );
+          itLines.forEach((line, li) => {
+            const dy = (li - (itLines.length - 1) / 2) * 6;
+            parts.push(`<text x="${posIt.x}" y="${posIt.y + dy}" font-size="5.5" font-weight="500"
+                              fill="#ffffff" text-anchor="middle"
+                              dominant-baseline="middle">${esc(line)}</text>`);
+          });
+        }
+
+        itemCur = ia1;
+      }
+
+      subCur = a1;
+    }
+  }
+  parts.push('</svg>');
+  return parts.join('');
+}
+
+function renderBigWheel(item){
+  const W = 700, H = 700;
+  const cx = 350, cy = 350;
+  const rIn = 60, rOut = 330;
+
+  const span = rOut - rIn;
+  const rCat0 = rIn;
+  const rCat1 = rIn + span * 0.40;
+  const rSub0 = rCat1;
+  const rSub1 = rCat1 + span * 0.30;
+  const rItm0 = rSub1;
+  const rItm1 = rOut;
+
+  const grouped = {};
+  for (const d of (item.descriptors || [])){
+    if (!grouped[d.cat]) grouped[d.cat] = {};
+    if (!grouped[d.cat][d.sub]) grouped[d.cat][d.sub] = [];
+    if (!grouped[d.cat][d.sub].includes(d.name)) grouped[d.cat][d.sub].push(d.name);
+  }
+
+  const cats = Object.keys(WHEEL);
+  const catWeights = cats.map(c => grouped[c] ? 3 : 1);
+  const catTotal = catWeights.reduce((a, b) => a + b, 0);
+
+  let cur = 0;
+  const catAngles = cats.map((c, i) => {
+    const sp = 360 * catWeights[i] / catTotal;
+    const slot = { cat: c, a0: cur, a1: cur + sp };
+    cur += sp;
+    return slot;
+  });
+
+  const parts = [];
+  parts.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`);
+  parts.push(`<circle cx="${cx}" cy="${cy}" r="${rOut + 4}" fill="#f6f1ea"/>`);
+
+  for (const slot of catAngles){
+    const cat = slot.cat;
+    const isActive = !!grouped[cat];
+    const d = miniAnnulus(cx, cy, rCat1, rCat0, slot.a0, slot.a1);
+    const op = isActive ? '1' : '0.35';
+    parts.push(`<path d="${d}" fill="${WHEEL[cat].color}" opacity="${op}" stroke="#fffdfa" stroke-width="1.5"/>`);
+
+    const catSpan = slot.a1 - slot.a0;
+    if (catSpan >= 6){
+      const mid = (slot.a0 + slot.a1) / 2;
+      const rr  = (rCat0 + rCat1) / 2;
+      const pos = miniPolar(cx, cy, rr, mid);
+      const lines = wrapText(cat).slice(0, 2).map(l => l.length > 14 ? l.slice(0, 13) + '…' : l);
+      lines.forEach((line, li) => {
+        const dy = (li - (lines.length - 1) / 2) * 12;
+        parts.push(`<text x="${pos.x}" y="${pos.y + dy}" font-size="14" font-weight="700"
+                          fill="${scaContrast(WHEEL[cat].color)}" text-anchor="middle"
+                          dominant-baseline="middle">${esc(line)}</text>`);
+      });
+    }
+  }
+
+  for (const slot of catAngles){
+    const cat = slot.cat;
+    if (!grouped[cat]) continue;
+
+    const subNames = Object.keys(grouped[cat]);
+    const catSpan  = slot.a1 - slot.a0;
+    const subStep  = catSpan / subNames.length;
+    let subCur = slot.a0;
+
+    for (const subName of subNames){
+      const a0 = subCur;
+      const a1 = subCur + subStep;
+      const subColor = (WHEEL[cat].sub[subName] && WHEEL[cat].sub[subName].color) || WHEEL[cat].color;
+
+      const d = miniAnnulus(cx, cy, rSub1, rSub0, a0, a1);
+      parts.push(`<path d="${d}" fill="${subColor}" stroke="#fffdfa" stroke-width="1.5"/>`);
+
+      const subSpan = a1 - a0;
+      if (subSpan >= 5){
+        const mid = (a0 + a1) / 2;
+        const rr  = (rSub0 + rSub1) / 2;
+        const pos = miniPolar(cx, cy, rr, mid);
+        const lines = wrapText(subName).slice(0, 2).map(l => l.length > 14 ? l.slice(0, 13) + '…' : l);
+        lines.forEach((line, li) => {
+          const dy = (li - (lines.length - 1) / 2) * 11;
+          parts.push(`<text x="${pos.x}" y="${pos.y + dy}" font-size="11" font-weight="600"
+                            fill="${scaContrast(subColor)}" text-anchor="middle"
+                            dominant-baseline="middle">${esc(line)}</text>`);
+        });
+      }
+
+      const items = grouped[cat][subName];
+      const itemStep = (a1 - a0) / items.length;
+      let itemCur = a0;
+
+      for (const itemName of items){
+        const ia0 = itemCur;
+        const ia1 = itemCur + itemStep;
+
+        const di = miniAnnulus(cx, cy, rItm1, rItm0, ia0, ia1);
+        parts.push(`<path d="${di}" fill="${subColor}" stroke="#fffdfa" stroke-width="1.5"/>`);
+
+        const itSpan = ia1 - ia0;
+        if (itSpan >= 4){
+          const mid = (ia0 + ia1) / 2;
+          const rr  = (rItm0 + rItm1) / 2;
+          const pos = miniPolar(cx, cy, rr, mid);
+          const lines = wrapText(itemName).slice(0, 2).map(l => l.length > 12 ? l.slice(0, 11) + '…' : l);
+          lines.forEach((line, li) => {
+            const dy = (li - (lines.length - 1) / 2) * 10;
+            parts.push(`<text x="${pos.x}" y="${pos.y + dy}" font-size="9.5" font-weight="500"
+                              fill="${scaContrast(subColor)}" text-anchor="middle"
+                              dominant-baseline="middle">${esc(line)}</text>`);
+          });
+        }
+
+        itemCur = ia1;
+      }
+
+      subCur = a1;
+    }
+  }
+
+  parts.push('</svg>');
+  return parts.join('');
+}
+
+function openHistoryWheel(item){
+  const metaEl = document.getElementById('historyWheelMeta');
+  if (metaEl){
+    const meta = item.meta;
+    if (meta){
+      metaEl.innerHTML = `<strong>${esc(item.name)}</strong><br>${esc(meta.process)} · обжарка: ${esc(meta.roast)}`;
+    } else {
+      metaEl.innerHTML = `<strong>${esc(item.name)}</strong>`;
+    }
+  }
+  const wrap = document.getElementById('historyWheelWrap');
+  if (wrap){
+    wrap.innerHTML = renderBigWheel(item);
+  }
+  document.getElementById('historyWheelModal').classList.add('show');
+}
+
+function closeHistoryWheel(){
+  document.getElementById('historyWheelModal').classList.remove('show');
+}
+/* Открывает модальное окно с просмотром описательной дегустации. */
+function openHistoryDescriptive(item){
+  const metaEl = document.getElementById('historyDescriptiveMeta');
+  if (metaEl){
+    metaEl.innerHTML = '<strong>' + esc(item.name) + '</strong><br>' +
+                       esc(item.date) +
+                       (item.lots ? ' · ' + item.lots.length + ' лот.' : '');
+  }
+
+  const body = document.getElementById('historyDescriptiveBody');
+  if (!body) return;
+
+  if (!item.lots || !item.lots.length){
+    body.innerHTML = '<p class="empty">В этой записи нет лотов.</p>';
+    document.getElementById('historyDescriptiveModal').classList.add('show');
+    return;
+  }
+
+  /* Названия шкал для отображения */
+  const SCALE_LABELS = [
+    { key: 'smell',   label: 'Запах' },
+    { key: 'aroma',   label: 'Аромат' },
+    { key: 'bouquet', label: 'Букет' },
+    { key: 'after',   label: 'Послевкусие' },
+    { key: 'acid',    label: 'Кислотность' },
+    { key: 'sweet',   label: 'Сладость' },
+    { key: 'tactile', label: 'Тактильность' }
+  ];
+
+  body.innerHTML = item.lots.map(lot => {
+    /* Ползунки-шкалы: только те, где значение > 0 */
+    const scalesHtml = SCALE_LABELS
+      .filter(s => Number(lot[s.key]) > 0)
+      .map(s => `
+        <div class="row-item">
+          <strong>${s.label}</strong>
+          <span>${lot[s.key]} / 15</span>
+        </div>
+      `).join('');
+
+    /* Чекбоксы */
+    const checksBlocks = [];
+    if (lot.aromaChecks && lot.aromaChecks.length){
+      checksBlocks.push(
+        '<div class="modal-lot-checks"><strong>Аромат:</strong>' +
+        lot.aromaChecks.map(c => '<span class="tag">' + esc(c) + '</span>').join('') +
+        '</div>'
+      );
+    }
+    if (lot.afterChecks && lot.afterChecks.length){
+      checksBlocks.push(
+        '<div class="modal-lot-checks"><strong>Послевкусие:</strong>' +
+        lot.afterChecks.map(c => '<span class="tag">' + esc(c) + '</span>').join('') +
+        '</div>'
+      );
+    }
+    if (lot.afterBaseChecks && lot.afterBaseChecks.length){
+      checksBlocks.push(
+        '<div class="modal-lot-checks"><strong>Базовые вкусы:</strong>' +
+        lot.afterBaseChecks.map(c => '<span class="tag">' + esc(c) + '</span>').join('') +
+        '</div>'
+      );
+    }
+    if (lot.tactileChecks && lot.tactileChecks.length){
+      checksBlocks.push(
+        '<div class="modal-lot-checks"><strong>Тактильность:</strong>' +
+        lot.tactileChecks.map(c => '<span class="tag">' + esc(c) + '</span>').join('') +
+        '</div>'
+      );
+    }
+
+    /* Заметки — только непустые */
+    const notesBlocks = [];
+    if (lot.notesSmell)   notesBlocks.push('<div class="modal-lot-notes"><strong>Заметки к запаху</strong>' + esc(lot.notesSmell) + '</div>');
+    if (lot.notesAroma)   notesBlocks.push('<div class="modal-lot-notes"><strong>Заметки к аромату</strong>' + esc(lot.notesAroma) + '</div>');
+    if (lot.notesAfter)   notesBlocks.push('<div class="modal-lot-notes"><strong>Заметки к послевкусию</strong>' + esc(lot.notesAfter) + '</div>');
+    if (lot.notesAcid)    notesBlocks.push('<div class="modal-lot-notes"><strong>Заметки к кислотности</strong>' + esc(lot.notesAcid) + '</div>');
+    if (lot.notesSweet)   notesBlocks.push('<div class="modal-lot-notes"><strong>Заметки к сладости</strong>' + esc(lot.notesSweet) + '</div>');
+    if (lot.notesTactile) notesBlocks.push('<div class="modal-lot-notes"><strong>Заметки к тактильности</strong>' + esc(lot.notesTactile) + '</div>');
+
+    const hasContent = scalesHtml || checksBlocks.length || notesBlocks.length;
+
+    return `
+      <div class="modal-lot">
+        <div class="modal-lot-title">${esc(lot.sample || ('Лот ' + lot.index))}</div>
+        ${scalesHtml ? '<div class="modal-lot-scales">' + scalesHtml + '</div>' : ''}
+        ${checksBlocks.join('')}
+        ${notesBlocks.join('')}
+        ${!hasContent ? '<p class="empty">Лот без оценок.</p>' : ''}
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('historyDescriptiveModal').classList.add('show');
+}
+
+function closeHistoryDescriptive(){
+  document.getElementById('historyDescriptiveModal').classList.remove('show');
+}
+
+function miniPolar(cx, cy, r, angleDeg){
+  const rad = (angleDeg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+function miniAnnulus(cx, cy, rOuter, rInner, startA, endA){
+  const p1 = miniPolar(cx, cy, rOuter, startA);
+  const p2 = miniPolar(cx, cy, rOuter, endA);
+  const p3 = miniPolar(cx, cy, rInner, endA);
+  const p4 = miniPolar(cx, cy, rInner, startA);
+  const largeArc = (endA - startA) > 180 ? 1 : 0;
+  return [
+    `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`,
+    `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`,
+    `L ${p3.x.toFixed(2)} ${p3.y.toFixed(2)}`,
+    `A ${rInner} ${rInner} 0 ${largeArc} 0 ${p4.x.toFixed(2)} ${p4.y.toFixed(2)}`,
+    'Z'
+  ].join(' ');
+}
+
+function renderHistory(){
+  const el = document.getElementById('history');
+  const h  = loadHistory();
+  if (!h.length){
+    el.innerHTML = '<span class="empty">История пуста. Сохраните первую дегустацию.</span>';
+    return;
+  }
+  el.innerHTML = h.map(item => `
+    <article class="hist" data-id="${esc(item.id)}">
+      <div class="hist-head">
+        <div>
+          <div class="hist-name">
+            ${esc(item.name)}
+            ${item.source ? `<span class="hist-source">${esc(sourceLabel(item.source))}</span>` : ''}
+          </div>
+          <div class="hist-date">${esc(item.date)}</div>
+          ${item.meta ? `
+            <div class="hist-meta" style="margin-top:4px">
+              ${esc(item.meta.process)} · обжарка: ${esc(item.meta.roast)}
+            </div>` : ''}
+        </div>
+        <button type="button" class="btn ghost small" data-del="${esc(item.id)}">Удалить</button>
+      </div>
+
+      <div class="hist-layout">
+        <div class="hist-main">
+          <p class="hist-desc">${esc(item.description || '')}</p>
+          ${item.lots && item.lots.length ? `
+            <div class="hist-lots">
+              ${item.lots.map(lot => `
+                <div class="hist-lot">
+                  <div class="hist-lot-title">${esc(lot.sample)}</div>
+                  <div class="hist-lot-scales">
+                    ${lot.smell ? `<span>Запах: ${lot.smell}/15</span>` : ''}
+                    ${lot.aroma ? `<span>Аромат: ${lot.aroma}/15</span>` : ''}
+                    ${lot.bouquet ? `<span>Букет: ${lot.bouquet}/15</span>` : ''}
+                    ${lot.after ? `<span>Послевкусие: ${lot.after}/15</span>` : ''}
+                    ${lot.acid ? `<span>Кислотность: ${lot.acid}/15</span>` : ''}
+                    ${lot.sweet ? `<span>Сладость: ${lot.sweet}/15</span>` : ''}
+                    ${lot.tactile ? `<span>Тактильность: ${lot.tactile}/15</span>` : ''}
+                  </div>
+                  ${lot.aromaChecks && lot.aromaChecks.length ? `
+                    <div class="hist-lot-checks"><em>Аромат:</em> ${lot.aromaChecks.map(c => esc(c)).join(', ')}</div>
+                  ` : ''}
+                  ${lot.afterChecks && lot.afterChecks.length ? `
+                    <div class="hist-lot-checks"><em>Послевкусие:</em> ${lot.afterChecks.map(c => esc(c)).join(', ')}</div>
+                  ` : ''}
+                  ${lot.tactileChecks && lot.tactileChecks.length ? `
+                    <div class="hist-lot-checks"><em>Тактильность:</em> ${lot.tactileChecks.map(c => esc(c)).join(', ')}</div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+          ${metaLine(item) ? `<div class="hist-meta">${esc(metaLine(item))}</div>` : ''}
+          ${item.descriptors && item.descriptors.length ? `
+            <div class="tags">
+              ${item.descriptors.map(d => `<span class="tag">${esc(d.name)}</span>`).join('')}
+            </div>` : ''}
+          ${item.notes ? `<div class="hist-meta" style="margin-top:8px"><em>Заметки:</em> ${esc(item.notes)}</div>` : ''}
+        </div>
+
+        ${item.descriptors && item.descriptors.length ? `
+          <div class="hist-wheel">
+            ${renderMiniWheel(item)}
+          </div>` : ''}
+      </div>
+    </article>
+  `).join('');
+}
+
+/* =========================================================================
+   9. ЭТАПЫ
+   ========================================================================= */
+function openScreen(name){
+  const map = {
+    home:        'titleScreen',
+    wheel:       'screenWheel',
+    descriptive: 'screenDescriptive',
+    affective:   'screenAffective',
+    history:     'screenHistory',
+    sca:         'screenSCA'
+  };
+  const id = map[name];
+  if (!id) return;
+
+  document.querySelectorAll('.title-screen').forEach(el =>
+    el.classList.remove('active')
+  );
+  document.getElementById(id).classList.add('active');
+  if (name === 'sca') renderSCA();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* =========================================================================
+   10. TOAST
+   ========================================================================= */
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* =========================================================================
+   11. ОБРАБОТЧИКИ
+   ========================================================================= */
+document.getElementById('wheelSvg').addEventListener('click', e => {
+  const sector = e.target.closest('.sector');
+  if (!sector) return;
+
+  if (sector.classList.contains('shrinking')) return;
+
+  if (sector.dataset.cat){
+    const cat = sector.dataset.cat;
+
+    if (state.cat === cat){
+      state.cat = null;
+      state.sub = null;
+      renderWheel();
+      return;
+    }
+
+    animateAndChange(sector, () => {
+      state.cat = cat;
+      state.sub = null;
+      renderWheel();
+    });
+    return;
+  }
+
+  if (sector.dataset.sub){
+    const sub = sector.dataset.sub;
+
+    if (state.sub === sub){
+      state.sub = null;
+      renderWheel();
+      return;
+    }
+
+    const catSector = document.querySelector(`.sector[data-cat="${state.cat}"]`);
+    animateAndChange(catSector, () => {
+      state.sub = sub;
+      renderWheel();
+    });
+    return;
+  }
+
+  if (sector.dataset.item){
+    const item = sector.dataset.item;
+    const cat  = state.cat;
+    const sub  = state.sub;
+    const i = state.selected.findIndex(s =>
+      s.name === item && s.cat === cat && s.sub === sub);
+    if (i >= 0){
+      state.selected.splice(i, 1);
+    } else {
+      state.selected.push({ name:item, cat, sub });
+    }
+    state.cat = null;
+    state.sub = null;
+    renderWheel();
+    renderTags();
+    return;
+  }
+});
+
+function animateAndChange(sectorEl, callback){
+  if (!sectorEl){
+    setTimeout(callback, 120);
+    return;
+  }
+  sectorEl.classList.add('shrinking');
+  setTimeout(() => {
+    callback();
+  }, 220);
+}
+
+document.getElementById('tags').addEventListener('click', e => {
+  const b = e.target.closest('[data-remove]');
+  if (!b) return;
+  state.selected.splice(Number(b.dataset.remove), 1);
+  renderWheel();
+  renderTags();
+});
+
+document.getElementById('notes').addEventListener('input', e => {
+  state.notes = e.target.value;
+});
+
+document.getElementById('btnEndTasting').addEventListener('click', () => {
+  if (!state.selected.length){
+    showToast('Сначала выберите хотя бы один дескриптор');
+    return;
+  }
+  state.cat = null;
+  state.sub = null;
+  renderWheel();
+  openScreen('sca');
+});
+
+document.getElementById('btnBuild').addEventListener('click', () => {
+  const text = buildDescription();
+  const ta = document.getElementById('result');
+  if (!text){
+    ta.value = '';
+    showToast('Сначала выберите дескрипторы или параметры');
+    return;
+  }
+  ta.value = text;
+  showToast('Описание собрано');
+});
+
+document.getElementById('btnCopy').addEventListener('click', async () => {
+  const ta = document.getElementById('result');
+  const text = ta.value.trim();
+  if (!text){ showToast('Нечего копировать'); return; }
+  try {
+    if (navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+    } else {
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+    }
+    showToast('Описание скопировано');
+  } catch(err){
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); showToast('Описание скопировано'); }
+    catch(_) { showToast('Не удалось скопировать'); }
+  }
+});
+
+document.getElementById('btnClear').addEventListener('click', () => {
+  state = {
+    cat:null, sub:null, selected:[],
+    bodyLevel:null, bodyChars:[],
+    afterLevel:null, afterChars:[],
+    acid:0, sweet:0, aroma:0, notes:''
+  };
+  document.getElementById('result').value = '';
+  document.getElementById('notes').value = '';
+  document.getElementById('coffeeName').value = '';
+  renderWheel(); renderTags(); renderStage2();
+  openScreen('home');
+  showToast('Форма очищена');
+});
+
+function saveResult(source){
+  if (!state.selected.length){
+    showToast('Сначала выберите хотя бы один дескриптор');
+    return;
+  }
+
+  const resultTa = document.getElementById('result');
+  let text = (resultTa && resultTa.value.trim()) || buildDescription();
+  if (!text) text = '';
+
+  const nameInput = document.getElementById('coffeeName');
+  const name = (nameInput && nameInput.value.trim()) || 'Без названия';
+
+  const item = {
+    id: 'id' + Date.now() + Math.random().toString(36).slice(2,7),
+    name,
+    source,
+    date: new Date().toLocaleString('ru-RU',{
+      day:'2-digit',month:'2-digit',year:'numeric',
+      hour:'2-digit',minute:'2-digit'
+    }),
+    descriptors: state.selected.map(s => ({ name:s.name, cat:s.cat, sub:s.sub })),
+    params: {
+      acid: state.acid,
+      sweet: state.sweet,
+      aroma: state.aroma,
+      bodyLevel: state.bodyLevel,
+      bodyChars: state.bodyChars.slice(),
+      afterLevel: state.afterLevel,
+      afterChars: state.afterChars.slice()
+    },
+    notes: state.notes,
+    description: text
+  };
+
+  const h = loadHistory();
+  h.unshift(item);
+  persistHistory(h);
+  renderHistory();
+  if (nameInput) nameInput.value = '';
+  showToast('Результат сохранён');
+}
+
+document.getElementById('btnSaveWheel').addEventListener('click', () => saveResult('wheel'));
+
+/* =========================================================================
+   СОХРАНЕНИЕ РЕЗУЛЬТАТОВ ОПИСАТЕЛЬНОЙ ФОРМЫ В ИСТОРИЮ
+   =========================================================================
+   Собирает данные всех лотов из descState и сохраняет в Историю одной записью.
+   ========================================================================= */
+document.getElementById('btnSaveDescriptive').addEventListener('click', () => {
+  /* Проверяем, что лоты вообще созданы */
+  if (!descState.lots.length){
+    showToast('Сначала выберите количество лотов');
+    return;
+  }
+
+  /* Сохраняем текущее состояние формы в текущий лот
+     (на случай, если пользователь не переключил вкладку) */
+  readFormIntoLot();
+
+  /* Проверяем, что во всех лотах заполнено поле «Образец» */
+  const emptyIndices = [];
+  descState.lots.forEach((lot, i) => {
+    if (!lot.sample || !lot.sample.trim()){
+      emptyIndices.push(i + 1);
+    }
+  });
+
+  if (emptyIndices.length){
+    /* Подсветим текущий лот, если он пустой */
+    const currentIdx = descState.currentLot + 1;
+    const sampleInput = document.getElementById('descSample');
+    if (sampleInput){
+      if (emptyIndices.includes(currentIdx)){
+        sampleInput.classList.add('invalid');
+      } else {
+        sampleInput.classList.remove('invalid');
+      }
+    }
+    showToast('Заполните «Образец» для лотов: ' + emptyIndices.join(', '));
+    return;
+  }
+
+  /* Собираем итоговые данные всех лотов */
+  const lots = descState.lots.map((lot, i) => ({
+    index: i + 1,
+    sample: lot.sample.trim(),
+    smell:      lot.smell,
+    aroma:      lot.aroma,
+    bouquet:    lot.bouquet,
+    after:      lot.after,
+    acid:       lot.acid,
+    sweet:      lot.sweet,
+    tactile:    lot.tactile,
+    aromaChecks:     lot.aromaChecks.slice(),
+    afterChecks:     lot.afterChecks.slice(),
+    afterBaseChecks: lot.afterBaseChecks.slice(),
+    tactileChecks:   lot.tactileChecks.slice(),
+    notesSmell:      lot.notesSmell,
+    notesAroma:      lot.notesAroma,
+    notesAfter:      lot.notesAfter,
+    notesAcid:       lot.notesAcid,
+    notesSweet:      lot.notesSweet,
+    notesTactile:    lot.notesTactile
+  }));
+
+  /* Имя записи: если один лот — его образец; если несколько — сводное имя */
+  const firstName = lots.length === 1
+    ? lots[0].sample
+    : 'Дескриптивная дегустация (' + lots.length + ' лот.)';
+
+  /* Формируем описание — короткая сводка по всем лотам */
+  const summaryParts = lots.map(lot => {
+    const parts = [];
+    if (lot.smell)   parts.push('запах ' + lot.smell + '/15');
+    if (lot.aroma)   parts.push('аромат ' + lot.aroma + '/15');
+    if (lot.bouquet) parts.push('букет ' + lot.bouquet + '/15');
+    if (lot.after)   parts.push('послевкусие ' + lot.after + '/15');
+    if (lot.acid)    parts.push('кислотность ' + lot.acid + '/15');
+    if (lot.sweet)   parts.push('сладость ' + lot.sweet + '/15');
+    if (lot.tactile) parts.push('тактильность ' + lot.tactile + '/15');
+
+    return lot.sample + ': ' + (parts.length ? parts.join(', ') : 'без оценок');
+  }).join(' • ');
+
+  /* Формируем запись для Истории */
+  const item = {
+    id: 'id' + Date.now() + Math.random().toString(36).slice(2,7),
+    name: firstName,
+    source: 'descriptive',
+    date: new Date().toLocaleString('ru-RU', {
+      day:'2-digit', month:'2-digit', year:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    }),
+    /* Старые поля — оставляем пустыми, чтобы не сломать renderHistory */
+    descriptors: [],
+    params: {},
+    notes: '',
+    description: summaryParts,
+    /* Новое поле — массив лотов */
+    lots: lots
+  };
+
+  /* Пишем в Историю */
+  const h = loadHistory();
+  h.unshift(item);
+  persistHistory(h);
+  renderHistory();
+
+  /* Показываем уведомление, сбрасываем и уходим на главный */
+  showToast('Результаты сохранены (' + lots.length + ' лот.)');
+  resetDescriptiveForm();
+  openScreen('home');
+});
+
+/* Сбрасывает форму и данные лотов. */
+function resetDescriptiveForm(){
+  descState.lots = [];
+  descState.lotsCount = 1;
+  descState.currentLot = 0;
+  currentLotsCount = 1;
+
+  /* Очищаем видимые поля */
+  const sampleEl = document.getElementById('descSample');
+  if (sampleEl) sampleEl.value = '';
+
+  const scales = [
+    'scaleSmellDesc', 'scaleAromaDesc', 'scaleBouquetDesc',
+    'scaleAfterDesc', 'scaleAcidDesc', 'scaleSweetDesc', 'scaleTactileDesc'
+  ];
+  scales.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = 0;
+  });
+
+  const bubbles = [
+    'bubbleSmellDesc', 'bubbleAromaDesc', 'bubbleBouquetDesc',
+    'bubbleAfterDesc', 'bubbleAcidDesc', 'bubbleSweetDesc', 'bubbleTactileDesc'
+  ];
+  bubbles.forEach(id => {
+    const el = document.getElementById(id);
+    if (el){
+      el.textContent = '0';
+      el.classList.remove('show');
+    }
+  });
+
+  const notesIds = [
+    'notesSmell', 'notesAroma', 'notesAfter',
+    'notesAcid', 'notesSweet', 'notesTactile'
+  ];
+  notesIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  document.querySelectorAll('input[data-check]').forEach(cb => {
+    cb.checked = false;
+  });
+
+  /* Обновляем чипсы базовых вкусов */
+  if (typeof renderBaseTastesChips === 'function'){
+    renderBaseTastesChips();
+  }
+}
+document.getElementById('btnSave').addEventListener('click', () => saveResult('affective'));
+
+document.getElementById('btnSaveResult').addEventListener('click', () => {
+  if (!state.selected.length){
+    showToast('Сначала выберите хотя бы один дескриптор');
+    return;
+  }
+  openCoffeeMetaModal();
+});
+
+function openCoffeeMetaModal(){
+  document.getElementById('metaCountry').value = '';
+  document.getElementById('metaCoop').value = '';
+  document.getElementById('metaProcess').value = '';
+  document.getElementById('metaRoast').value = '';
+
+  document.getElementById('metaError').classList.remove('show');
+  ['metaCountry','metaCoop','metaProcess','metaRoast'].forEach(id => {
+    document.getElementById(id).classList.remove('invalid');
+  });
+
+  document.getElementById('coffeeMetaModal').classList.add('show');
+
+  setTimeout(() => document.getElementById('metaCountry').focus(), 100);
+}
+
+function closeCoffeeMetaModal(){
+  document.getElementById('coffeeMetaModal').classList.remove('show');
+}
+
+document.getElementById('btnMetaCancel').addEventListener('click', () => {
+  closeCoffeeMetaModal();
+});
+
+document.getElementById('coffeeMetaModal').addEventListener('click', e => {
+  if (e.target.id === 'coffeeMetaModal'){
+    closeCoffeeMetaModal();
+  }
+});
+
+document.getElementById('btnMetaSave').addEventListener('click', () => {
+  const country = document.getElementById('metaCountry').value.trim();
+  const coop    = document.getElementById('metaCoop').value.trim();
+  const process = document.getElementById('metaProcess').value.trim();
+  const roast   = document.getElementById('metaRoast').value.trim();
+
+  const fields = [
+    { id: 'metaCountry', value: country },
+    { id: 'metaCoop',    value: coop },
+    { id: 'metaProcess', value: process },
+    { id: 'metaRoast',   value: roast }
+  ];
+  let allFilled = true;
+  fields.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (!f.value){
+      el.classList.add('invalid');
+      allFilled = false;
+    } else {
+      el.classList.remove('invalid');
+    }
+  });
+
+  if (!allFilled){
+    document.getElementById('metaError').classList.add('show');
+    return;
+  }
+  document.getElementById('metaError').classList.remove('show');
+
+  saveResultSCAWithMeta({ country, coop, process, roast });
+
+  closeCoffeeMetaModal();
+  resetWheelAndGoHome();
+});
+
+document.getElementById('history').addEventListener('click', e => {
+  /* Удаление записи */
+  const b = e.target.closest('[data-del]');
+  if (b){
+    persistHistory(loadHistory().filter(x => x.id !== b.dataset.del));
+    renderHistory();
+    showToast('Запись удалена');
+    return;
+  }
+
+  /* Клик по записи — открыть просмотр */
+  const article = e.target.closest('.hist');
+  if (!article) return;
+  const id = article.dataset.id;
+  const item = loadHistory().find(x => x.id === id);
+  if (!item) return;
+
+  /* Если у записи есть лоты (описательная форма) — открываем её просмотр.
+     Если у записи есть descriptors (колесо/SCA) — открываем колесо. */
+  if (item.lots && item.lots.length){
+    openHistoryDescriptive(item);
+  } else if (item.descriptors && item.descriptors.length){
+    openHistoryWheel(item);
+  }
+});
+document.getElementById('btnCloseHistoryWheel').addEventListener('click', () => {
+  closeHistoryWheel();
+});
+
+document.getElementById('historyWheelModal').addEventListener('click', e => {
+  if (e.target.id === 'historyWheelModal'){
+    closeHistoryWheel();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    closeHistoryDescriptive();
+    closeBaseTastesModal();
+  }
+});
+document.getElementById('btnCloseHistoryDescriptive').addEventListener('click', () => {
+  closeHistoryDescriptive();
+});
+
+document.getElementById('historyDescriptiveModal').addEventListener('click', e => {
+  if (e.target.id === 'historyDescriptiveModal'){
+    closeHistoryDescriptive();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    closeHistoryDescriptive();
+  }
+});
+
+document.getElementById('btnClearHistory').addEventListener('click', () => {
+  const h = loadHistory();
+  if (!h.length){ showToast('История уже пуста'); return; }
+  if (!confirm('Удалить всю историю дегустаций?')) return;
+  persistHistory([]);
+  renderHistory();
+  showToast('История очищена');
+});
+
+function saveResultSCAWithMeta(meta){
+  if (!state.selected.length){
+    showToast('Нет выбранных дескрипторов');
+    return;
+  }
+
+  let text = buildDescription();
+  if (!text) text = '';
+
+  const item = {
+    id: 'id' + Date.now() + Math.random().toString(36).slice(2,7),
+    name: meta.country + ' · ' + meta.coop,
+    source: 'sca',
+    meta: {
+      country:  meta.country,
+      coop:     meta.coop,
+      process:  meta.process,
+      roast:    meta.roast
+    },
+    date: new Date().toLocaleString('ru-RU',{
+      day:'2-digit',month:'2-digit',year:'numeric',
+      hour:'2-digit',minute:'2-digit'
+    }),
+    descriptors: state.selected.map(s => ({ name:s.name, cat:s.cat, sub:s.sub })),
+    params: {
+      acid: state.acid,
+      sweet: state.sweet,
+      aroma: state.aroma,
+      bodyLevel: state.bodyLevel,
+      bodyChars: state.bodyChars.slice(),
+      afterLevel: state.afterLevel,
+      afterChars: state.afterChars.slice()
+    },
+    notes: state.notes,
+    description: text
+  };
+
+  const h = loadHistory();
+  h.unshift(item);
+  persistHistory(h);
+  renderHistory();
+  showToast('Результат сохранён');
+}
+
+function resetWheelAndGoHome(){
+  state = {
+    cat: null, sub: null, selected: [],
+    bodyLevel: null, bodyChars: [],
+    afterLevel: null, afterChars: [],
+    acid: 0, sweet: 0, aroma: 0, notes: ''
+  };
+  const resultTa = document.getElementById('result');
+  if (resultTa) resultTa.value = '';
+  const notesTa = document.getElementById('notes');
+  if (notesTa) notesTa.value = '';
+  const nameInp = document.getElementById('coffeeName');
+  if (nameInp) nameInp.value = '';
+
+  renderWheel();
+  renderTags();
+  renderStage2();
+  openScreen('home');
+}
+
+/* =========================================================================
+   ДЕСКРИПТИВНАЯ ФОРМА — живые ползунки
+   ========================================================================= */
+/* Связка: ползунок → пузырёк-счётчик */
+const DESCRIPTIVE_SCALES = [
+  { slider: 'scaleSmellDesc',   bubble: 'bubbleSmellDesc'   },
+  { slider: 'scaleAromaDesc',   bubble: 'bubbleAromaDesc'   },
+  { slider: 'scaleBouquetDesc', bubble: 'bubbleBouquetDesc' },
+  { slider: 'scaleAfterDesc',   bubble: 'bubbleAfterDesc'   },
+  { slider: 'scaleAcidDesc',    bubble: 'bubbleAcidDesc'    },
+  { slider: 'scaleSweetDesc',   bubble: 'bubbleSweetDesc'   },
+  { slider: 'scaleTactileDesc', bubble: 'bubbleTactileDesc' }
+];
+
+/* Сдвигает пузырёк так, чтобы его центр совпал с центром бегунка ползунка. */
+function positionBubble(inp, bubble){
+  const min = Number(inp.min) || 0;
+  const max = Number(inp.max) || 15;
+  const v   = Number(inp.value);
+  const pct = (v - min) / (max - min);
+
+  /* Ширина бегунка — 10px (из CSS). Половина = 5px.
+     Ползунок начинается от левого края + 5px, заканчивается у правого - 5px. */
+  const thumbW = 10;
+  const trackW = inp.offsetWidth;
+  const usable = Math.max(trackW - thumbW, 0);
+  const leftPx = thumbW / 2 + pct * usable;
+
+  bubble.style.left = leftPx + 'px';
+  bubble.textContent = v;
+}
+
+DESCRIPTIVE_SCALES.forEach(({ slider, bubble }) => {
+  const inp = document.getElementById(slider);
+  const bub = document.getElementById(bubble);
+  if (!inp || !bub) return;
+
+  const update = () => positionBubble(inp, bub);
+
+  let hideTimer = null;
+  const showBubble = () => {
+    update();
+    bub.classList.add('show');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      bub.classList.remove('show');
+    }, 1200);
+  };
+
+  /* --- События --- */
+  inp.addEventListener('input', showBubble);
+  inp.addEventListener('pointerdown', showBubble);
+  inp.addEventListener('pointerup', showBubble);
+  window.addEventListener('resize', () => {
+    if (bub.classList.contains('show')) update();
+  });
+  setTimeout(update, 0);
+});
+
+/* =========================================================================
+   Автосохранение значений в текущий лот
+   ========================================================================= */
+const LOT_SCALE_KEYS = {
+  scaleSmellDesc:   'smell',
+  scaleAromaDesc:   'aroma',
+  scaleBouquetDesc: 'bouquet',
+  scaleAfterDesc:   'after',
+  scaleAcidDesc:    'acid',
+  scaleSweetDesc:   'sweet',
+  scaleTactileDesc: 'tactile'
+};
+
+Object.keys(LOT_SCALE_KEYS).forEach(sliderId => {
+  const inp = document.getElementById(sliderId);
+  if (!inp) return;
+  inp.addEventListener('input', () => {
+    const lot = getCurrentLot();
+    if (lot) lot[LOT_SCALE_KEYS[sliderId]] = Number(inp.value);
+  });
+});
+
+const descSampleEl = document.getElementById('descSample');
+if (descSampleEl){
+  descSampleEl.addEventListener('input', () => {
+    const lot = getCurrentLot();
+    if (lot) lot.sample = descSampleEl.value;
+
+    /* Снимаем подсветку ошибки, если поле заполнено */
+    if (descSampleEl.value.trim()){
+      descSampleEl.classList.remove('invalid');
+    }
+
+    /* Обновляем вкладки — код образца на активной вкладке */
+    renderLotTabs();
+  });
+}
+const NOTES_LOT_KEYS = {
+  notesSmell:   'notesSmell',
+  notesAroma:   'notesAroma',
+  notesAfter:   'notesAfter',
+  notesAcid:    'notesAcid',
+  notesSweet:   'notesSweet',
+  notesTactile: 'notesTactile'
+};
+
+Object.keys(NOTES_LOT_KEYS).forEach(notesId => {
+  const el = document.getElementById(notesId);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    const lot = getCurrentLot();
+    if (lot) lot[NOTES_LOT_KEYS[notesId]] = el.value;
+  });
+});
+
+const CHECKS_LOT_KEYS = {
+  'aroma':      'aromaChecks',
+  'after':      'afterChecks',
+  'after-base': 'afterBaseChecks',
+  'tactile':    'tactileChecks'
+};
+
+document.querySelectorAll('input[data-check]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const lot = getCurrentLot();
+    if (!lot) return;
+    const group = cb.dataset.check;
+    const key = CHECKS_LOT_KEYS[group];
+
+    /* Для after-base логика обрабатывается отдельно ниже (лимит 2 + авто-закрытие) */
+    if (key && group !== 'after-base') lot[key] = collectChecks(group);
+
+    /* Если это жирный чекбокс (родитель) — открываем или закрываем его подпункты */
+    if (cb.closest('.cata-main')){
+      const parentGroup = cb.closest('.cata-group');
+      if (parentGroup){
+        if (cb.checked){
+          parentGroup.classList.add('open');
+        } else {
+          parentGroup.classList.remove('open');
+          /* Снимаем все подпункты внутри этой группы */
+          parentGroup.querySelectorAll('.cata-sub input').forEach(sub => {
+            sub.checked = false;
+          });
+          /* Обновляем сохранённый массив */
+          const lot2 = getCurrentLot();
+          if (lot2 && key) lot2[key] = collectChecks(group);
+        }
+      }
+    }
+
+    /* Если это базовые вкусы в модалке — проверяем лимит и обновляем отображение */
+    if (group === 'after-base'){
+      const checkedBoxes = Array.from(
+        document.querySelectorAll('#baseTastesGrid input[data-check="after-base"]:checked')
+      );
+
+      /* Максимум 2 вкуса */
+      if (checkedBoxes.length > 2){
+        /* Откатываем только что поставленную галочку */
+        cb.checked = false;
+        /* Пересобираем массив без третьего */
+        lot.afterBaseChecks = collectChecks('after-base');
+        showToast('Максимум 2 базовых вкуса');
+        return;
+      }
+
+      /* Сохраняем актуальный выбор в лот */
+      lot.afterBaseChecks = collectChecks('after-base');
+      renderBaseTastesChips();
+
+      /* Если выбрано 2 — автоматически закрываем модалку */
+      if (checkedBoxes.length === 2){
+        closeBaseTastesModal();
+        showToast('Выбрано 2 базовых вкуса');
+      }
+    }
+  });
+});
+/* =========================================================================
+   БАЗОВЫЕ ВКУСЫ — модальное окно
+   ========================================================================= */
+function renderBaseTastesChips(){
+  const display = document.getElementById('descBaseDisplay');
+  if (!display) return;
+
+  const checked = Array.from(
+    document.querySelectorAll('#baseTastesGrid input[data-check="after-base"]:checked')
+  ).map(cb => cb.value);
+
+  if (!checked.length){
+    display.innerHTML = '<span class="desc-base-empty">Не выбрано</span>';
+    return;
+  }
+  display.innerHTML = checked.map(v =>
+    '<span class="desc-base-chip">' + esc(v) + '</span>'
+  ).join('');
+}
+
+function openBaseTastesModal(){
+  const lot = getCurrentLot();
+  if (!lot){
+    showToast('Сначала выберите количество лотов');
+    return;
+  }
+
+  /* Синхронизируем чекбоксы модалки с данными текущего лота */
+  const current = lot.afterBaseChecks || [];
+  document.querySelectorAll('#baseTastesGrid input[data-check="after-base"]').forEach(cb => {
+    cb.checked = current.indexOf(cb.value) !== -1;
+  });
+
+  /* Если уже выбрано 2 — не даём открыть (или можно открыть для смены) */
+  /* Оставляем возможность открыть, чтобы изменить выбор */
+
+  document.getElementById('baseTastesModal').classList.add('show');
+}
+function closeBaseTastesModal(){
+  document.getElementById('baseTastesModal').classList.remove('show');
+}
+
+document.getElementById('btnOpenBaseModal').addEventListener('click', () => {
+  openBaseTastesModal();
+});
+
+document.getElementById('btnBaseCancel').addEventListener('click', () => {
+  /* Откатываем изменения — перечитываем данные из лота */
+  closeBaseTastesModal();
+  const lot = getCurrentLot();
+  if (lot){
+    const current = lot.afterBaseChecks || [];
+    document.querySelectorAll('#baseTastesGrid input[data-check="after-base"]').forEach(cb => {
+      cb.checked = current.indexOf(cb.value) !== -1;
+    });
+  }
+  renderBaseTastesChips();
+});
+
+document.getElementById('btnBaseSave').addEventListener('click', () => {
+  const lot = getCurrentLot();
+  if (lot){
+    lot.afterBaseChecks = collectChecks('after-base');
+  }
+  renderBaseTastesChips();
+  closeBaseTastesModal();
+});
+
+document.getElementById('baseTastesModal').addEventListener('click', e => {
+  if (e.target.id === 'baseTastesModal'){
+    closeBaseTastesModal();
+    /* Также откатываем */
+    const lot = getCurrentLot();
+    if (lot){
+      const current = lot.afterBaseChecks || [];
+      document.querySelectorAll('#baseTastesGrid input[data-check="after-base"]').forEach(cb => {
+        cb.checked = current.indexOf(cb.value) !== -1;
+      });
+    }
+    renderBaseTastesChips();
+  }
+});
+/* =========================================================================
+   ДЕСКРИПТИВНАЯ ФОРМА: рендер вкладок и переключение
+   ========================================================================= */
+function renderLotTabs(){
+  const el = document.getElementById('lotTabs');
+  if (!el) return;
+  el.innerHTML = '';
+
+  /* Если лот один — вкладки не нужны */
+  if (descState.lotsCount <= 1) return;
+
+  for (let i = 0; i < descState.lotsCount; i++){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lot-tab' + (i === descState.currentLot ? ' active' : '');
+    btn.dataset.lot = i;
+
+    /* Показываем код образца (если заполнен) вместо «Лот N» */
+    const lot = descState.lots[i];
+    const code = (lot && lot.sample && lot.sample.trim())
+      ? lot.sample.trim()
+      : ('Лот ' + (i + 1));
+
+    btn.innerHTML =
+      '<span class="lot-tab-num">' + (i + 1) + '</span>' +
+      '<span class="lot-tab-code">' + esc(code) + '</span>';
+
+    btn.addEventListener('click', () => switchLot(i));
+    el.appendChild(btn);
+  }
+}
+/* Переключает текущий лот: сохраняет в старый, загружает в форму новый. */
+function switchLot(idx){
+  if (idx === descState.currentLot) return;
+
+  /* Сохраняем то, что сейчас введено, в текущий лот */
+  readFormIntoLot();
+
+  /* Меняем активный лот */
+  descState.currentLot = idx;
+
+  /* Загружаем данные нового лота в форму */
+  writeLotIntoForm();
+
+  /* Скрываем все пузырьки-счётчики и снимаем подсветку ошибки */
+  document.querySelectorAll('.desc-range-bubble').forEach(b => {
+    b.classList.remove('show');
+  });
+  const sampleInput = document.getElementById('descSample');
+  if (sampleInput) sampleInput.classList.remove('invalid');
+
+  /* Обновляем визуально вкладки */
+  renderLotTabs();
+}
+/* Инициализирует форму при входе в дескриптивную форму. */
+function initDescriptiveForm(){
+  if (!descState.lots.length || descState.lots.length !== currentLotsCount){
+    initDescLots(currentLotsCount);
+  }
+  renderLotTabs();
+  writeLotIntoForm();
+}
+/* =========================================================================
+   12. СТАРТ
+   ========================================================================= */
+document.querySelectorAll('.title-btn[data-open]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.open;
+
+    if (target === 'descriptive'){
+      openLotsCountModal();
+      return;
+    }
+
+    openScreen(target);
+  });
+});
+
+document.querySelectorAll('[data-back]').forEach(btn => {
+  btn.addEventListener('click', () => openScreen('home'));
+});
+
+document.getElementById('btnBackFromSCA').addEventListener('click', () => {
+  openScreen('wheel');
+});
+
+let currentLotsCount = 1;
+let selectedLotsCount = 1;
+
+function openLotsCountModal(){
+  const grid = document.getElementById('lotsGrid');
+  grid.innerHTML = '';
+  selectedLotsCount = 1;
+
+  for (let i = 1; i <= 30; i++){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lot-num' + (i === 1 ? ' selected' : '');
+    btn.textContent = i;
+    btn.dataset.num = i;
+    btn.addEventListener('click', () => {
+      grid.querySelectorAll('.lot-num').forEach(el => el.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedLotsCount = i;
+      document.getElementById('lotsError').classList.remove('show');
+    });
+    grid.appendChild(btn);
+  }
+
+  document.getElementById('lotsError').classList.remove('show');
+  document.getElementById('lotsCountModal').classList.add('show');
+}
+
+function closeLotsCountModal(){
+  document.getElementById('lotsCountModal').classList.remove('show');
+}
+
+document.getElementById('btnLotsCancel').addEventListener('click', () => {
+  closeLotsCountModal();
+});
+
+document.getElementById('btnLotsConfirm').addEventListener('click', () => {
+  if (!selectedLotsCount || selectedLotsCount < 1){
+    document.getElementById('lotsError').classList.add('show');
+    return;
+  }
+
+  currentLotsCount = selectedLotsCount;
+  closeLotsCountModal();
+
+  /* Генерируем уникальные 3-значные коды образцов и создаём лоты */
+  const codes = generateSampleCodes(currentLotsCount);
+  initDescLots(currentLotsCount, codes);
+  openScreen('descriptive');
+  renderLotTabs();
+  writeLotIntoForm();
+
+  showToast('Лотов: ' + currentLotsCount + ' · коды: ' + codes.join(', '));
+});
+document.getElementById('lotsCountModal').addEventListener('click', e => {
+  if (e.target.id === 'lotsCountModal'){
+    closeLotsCountModal();
+  }
+});
+
+renderWheel();
+renderTags();
+renderStage2();
+renderHistory();
+openScreen('home');
+</script>
+</body>
+</html>
